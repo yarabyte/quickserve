@@ -1,0 +1,28 @@
+Tu construis QuickServe, un SaaS multi-tenant de commande et réservation sur WhatsApp
+pour des restaurants dans le monde , via la plateforme WATI.
+
+STACK (impérative) :
+- Next.js 14+ App Router, TypeScript strict, ESLint + Prettier.
+- Prisma + PostgreSQL. Tailwind + shadcn/ui pour le dashboard.
+- NextAuth (Credentials) pour l'auth du dashboard. Zod pour toute validation d'input.
+- Aucune dépendance non-officielle WhatsApp : on passe UNIQUEMENT par l'API WATI.
+
+CONTRAINTES MÉTIER :
+- Multi-tenant : TOUTE entité opérationnelle porte restaurantId. Jamais de requête
+  sans scope tenant. Un middleware/util `withTenant()` garantit l'isolation.
+- Le bot est un FLUX STRUCTURÉ déterministe (machine à états), PAS un LLM. Les messages
+  sortants sont des boutons (max 3) ou des listes interactives (WATI). Les entrées client
+  sont soit du texte libre, soit buttonReply.payload / listReply.id.
+- WATI : sessions de 24h. Dans la session -> messages interactifs libres. Hors session
+  (>24h sans message client) -> template approuvé obligatoire. Coder ce garde-fou.
+- Résolution tenant : deep-link `wa.me/<num>?text=RESTO-<slug>`. Le 1er message
+  contient RESTO-<slug> -> on lie la conversation à ce restaurant. Si inconnu, on demande.
+- Langue : détecter FR/EN au 1er message texte ; stocker sur la conversation ; bouton bascule.
+- Idempotence webhook : WATI peut renvoyer le même event (retries). Dédupliquer par id.
+
+CONVENTIONS :
+- Domain logic dans /src/lib (pur, testable), pas dans les routes.
+- Client WATI isolé dans /src/lib/wati (une seule surface d'appel).
+- La machine à états dans /src/lib/conversation (transitions pures, effets séparés).
+- Réponses de route webhook : toujours 200 rapidement, traitement idempotent.
+- Commits atomiques par feature. Types partagés dans /src/types.

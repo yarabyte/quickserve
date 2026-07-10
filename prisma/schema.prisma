@@ -1,0 +1,205 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  SUSPENDED
+}
+
+enum UserRole {
+  SUPERADMIN
+  OWNER
+  STAFF
+}
+
+enum OrderType {
+  DELIVERY
+  PICKUP
+}
+
+enum OrderStatus {
+  DRAFT
+  CONFIRMED
+  PREPARING
+  READY
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  MOMO_MANUAL
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+}
+
+enum ReservationStatus {
+  REQUESTED
+  CONFIRMED
+  CANCELLED
+}
+
+model Restaurant {
+  id                  String             @id @default(cuid())
+  slug                String             @unique
+  name                String
+  phoneWhatsappNotify String?
+  currency            String             @default("XAF")
+  defaultLanguage     String             @default("fr")
+  isOpen              Boolean            @default(true)
+  openingHours        Json?
+  subscriptionStatus  SubscriptionStatus @default(TRIAL)
+  trialEndsAt         DateTime?
+  googleSpreadsheetId String?
+  sheetVerifiedAt     DateTime?
+  menuSyncedAt        DateTime?
+  createdAt           DateTime           @default(now())
+
+  users         User[]
+  menuItems     MenuItemCache[]
+  customers     Customer[]
+  conversations Conversation[]
+  orders        Order[]
+  reservations  Reservation[]
+
+  @@index([subscriptionStatus])
+}
+
+model User {
+  id           String   @id @default(cuid())
+  restaurantId String?
+  email        String   @unique
+  passwordHash String
+  role         UserRole @default(STAFF)
+
+  restaurant Restaurant? @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@index([restaurantId])
+}
+
+model MenuItemCache {
+  id           String   @id @default(cuid())
+  restaurantId String
+  externalRef  String
+  categoryName String
+  name         String
+  description  String?
+  priceXAF     Int
+  isAvailable  Boolean  @default(true)
+  position     Int      @default(0)
+  syncedAt     DateTime @default(now())
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@unique([restaurantId, externalRef])
+  @@index([restaurantId, isAvailable])
+  @@index([restaurantId, position])
+}
+
+model Customer {
+  id             String  @id @default(cuid())
+  restaurantId   String
+  waId           String
+  name           String?
+  defaultAddress String?
+  language       String  @default("fr")
+
+  restaurant   Restaurant    @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  orders       Order[]
+  reservations Reservation[]
+
+  @@unique([restaurantId, waId])
+  @@index([restaurantId])
+}
+
+model Conversation {
+  id            String    @id @default(cuid())
+  restaurantId  String?
+  waId          String    @unique
+  state         String    @default("INIT")
+  context       Json      @default("{}")
+  language      String    @default("fr")
+  lastInboundAt DateTime?
+  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime  @default(now())
+
+  restaurant Restaurant? @relation(fields: [restaurantId], references: [id], onDelete: SetNull)
+
+  @@index([restaurantId])
+  @@index([state])
+}
+
+model Order {
+  id              String         @id @default(cuid())
+  orderNumber     String         @unique
+  restaurantId    String
+  customerId      String
+  type            OrderType
+  status          OrderStatus    @default(DRAFT)
+  items           Json
+  totalXAF        Int
+  deliveryAddress String?
+  paymentMethod   PaymentMethod?
+  paymentStatus   PaymentStatus  @default(PENDING)
+  note            String?
+  createdAt       DateTime       @default(now())
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  customer   Customer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([restaurantId, status])
+  @@index([customerId])
+}
+
+model Reservation {
+  id           String            @id @default(cuid())
+  restaurantId String
+  customerId   String
+  dateTime     DateTime
+  partySize    Int
+  status       ReservationStatus @default(REQUESTED)
+  note         String?
+  createdAt    DateTime          @default(now())
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  customer   Customer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([restaurantId, status])
+  @@index([customerId])
+  @@index([restaurantId, dateTime])
+}
+
+model WebhookEvent {
+  id          String    @id
+  payload     Json
+  processedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([processedAt])
+}
+
+/// Lightweight outbox for Postgres → Google Sheets pushes (non-blocking).
+model SheetOutbox {
+  id            String    @id @default(cuid())
+  restaurantId  String
+  kind          String
+  payload       Json
+  attempts      Int       @default(0)
+  lastError     String?
+  nextAttemptAt DateTime  @default(now())
+  processedAt   DateTime?
+  createdAt     DateTime  @default(now())
+
+  @@index([processedAt, nextAttemptAt])
+  @@index([restaurantId])
+}
