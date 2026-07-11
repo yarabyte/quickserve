@@ -1,9 +1,11 @@
 import Link from "next/link";
+import { LogOut } from "lucide-react";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
 import { logoutAction } from "@/lib/dashboard/auth-actions";
 import { DashboardNav } from "@/components/dashboard/dashboard-nav";
+import type { NavIconKey } from "@/components/dashboard/nav-icons";
 import { SubscriptionBanner } from "@/components/dashboard/subscription-banner";
 import { Button } from "@/components/ui/button";
 import { t } from "@/i18n";
@@ -21,14 +23,18 @@ export default async function DashboardLayout({
   const lang = "fr";
   const isSuper = session.user.role === "SUPERADMIN";
 
-  const nav = [
-    { href: "/dashboard/orders", label: t("dash.nav.orders", lang) },
-    { href: "/dashboard/reservations", label: t("dash.nav.reservations", lang) },
-    { href: "/dashboard/menu", label: t("dash.nav.menu", lang) },
-    { href: "/dashboard/settings", label: t("dash.nav.settings", lang) },
-    { href: "/dashboard/billing", label: t("dash.nav.billing", lang) },
+  const nav: Array<{ href: string; label: string; icon: NavIconKey }> = [
+    { href: "/dashboard/orders", label: t("dash.nav.orders", lang), icon: "orders" },
+    {
+      href: "/dashboard/reservations",
+      label: t("dash.nav.reservations", lang),
+      icon: "reservations",
+    },
+    { href: "/dashboard/menu", label: t("dash.nav.menu", lang), icon: "menu" },
+    { href: "/dashboard/settings", label: t("dash.nav.settings", lang), icon: "settings" },
+    { href: "/dashboard/billing", label: t("dash.nav.billing", lang), icon: "billing" },
     ...(isSuper
-      ? [{ href: "/dashboard/admin", label: t("dash.nav.admin", lang) }]
+      ? [{ href: "/dashboard/admin", label: t("dash.nav.admin", lang), icon: "admin" as const }]
       : []),
   ];
 
@@ -61,6 +67,7 @@ export default async function DashboardLayout({
             </div>
             <form action={logoutAction}>
               <Button type="submit" variant="outline" size="sm">
+                <LogOut className="h-3.5 w-3.5" aria-hidden />
                 {t("dash.logout", lang)}
               </Button>
             </form>

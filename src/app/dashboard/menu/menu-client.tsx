@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { ExternalLink, RefreshCw, UtensilsCrossed } from "lucide-react";
 
 import { resyncMenuAction } from "@/lib/dashboard/actions";
 import { PageHeader } from "@/components/dashboard/page-header";
@@ -47,6 +48,7 @@ export function MenuClient({
   return (
     <div className="space-y-6">
       <PageHeader
+        icon={UtensilsCrossed}
         title={t("dash.menu.title", lang, { name: restaurantName })}
         description={t("dash.menu.readonly", lang)}
         actions={
@@ -56,8 +58,9 @@ export function MenuClient({
                 href={sheetUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex h-8 items-center rounded-lg border border-border bg-card px-3 text-xs font-medium shadow-sm hover:bg-muted"
+                className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-xs font-medium shadow-sm hover:bg-muted"
               >
+                <ExternalLink className="h-3.5 w-3.5" aria-hidden />
                 {t("dash.menu.open_sheet", lang)}
               </a>
             ) : null}
@@ -78,6 +81,7 @@ export function MenuClient({
                 })
               }
             >
+              <RefreshCw className={`h-3.5 w-3.5 ${pending ? "animate-spin" : ""}`} aria-hidden />
               {pending ? "Sync…" : t("dash.menu.resync", lang)}
             </Button>
           </>

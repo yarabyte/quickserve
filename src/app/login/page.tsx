@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { Lock, LogIn, Mail } from "lucide-react";
 
 import { authenticate } from "@/lib/dashboard/auth-actions";
 import { Button } from "@/components/ui/button";
@@ -32,7 +33,10 @@ export default function LoginPage() {
         <CardContent>
           <form action={formAction} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="inline-flex items-center gap-1.5">
+                <Mail className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />
+                Email
+              </Label>
               <Input
                 id="email"
                 name="email"
@@ -43,7 +47,10 @@ export default function LoginPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Mot de passe</Label>
+              <Label htmlFor="password" className="inline-flex items-center gap-1.5">
+                <Lock className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />
+                Mot de passe
+              </Label>
               <Input
                 id="password"
                 name="password"
@@ -59,6 +66,7 @@ export default function LoginPage() {
               </p>
             ) : null}
             <Button type="submit" className="w-full" disabled={pending}>
+              <LogIn className="h-4 w-4" aria-hidden />
               {pending ? "Connexion…" : t("dash.login.submit", lang)}
             </Button>
           </form>

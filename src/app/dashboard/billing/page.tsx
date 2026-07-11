@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Check, CreditCard } from "lucide-react";
 
 import { auth } from "@/auth";
 import { withTenant } from "@/lib/auth/tenant";
@@ -52,6 +53,7 @@ export default async function BillingPage() {
   return (
     <div className="space-y-6">
       <PageHeader
+        icon={CreditCard}
         title={t("dash.billing.title", "fr")}
         description={
           <>
@@ -93,7 +95,7 @@ export default async function BillingPage() {
               <ul className="space-y-2 text-sm text-muted-foreground">
                 {plan.features.map((f) => (
                   <li key={f} className="flex gap-2">
-                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
                     {f}
                   </li>
                 ))}

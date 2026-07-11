@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { Copy, Link2, Save, Settings } from "lucide-react";
 
 import { updateRestaurantSettings } from "@/lib/dashboard/actions";
 import { PageHeader } from "@/components/dashboard/page-header";
@@ -40,6 +41,7 @@ export function SettingsClient({
   return (
     <div className="space-y-6">
       <PageHeader
+        icon={Settings}
         title="Réglages"
         description="Configuration du restaurant et deep-link WhatsApp"
       />
@@ -148,6 +150,7 @@ export function SettingsClient({
 
             {message ? <p className="text-sm text-muted-foreground">{message}</p> : null}
             <Button type="submit" disabled={pending}>
+              <Save className="h-3.5 w-3.5" aria-hidden />
               {pending ? "Enregistrement…" : "Enregistrer"}
             </Button>
           </form>
@@ -156,7 +159,10 @@ export function SettingsClient({
 
       <Card>
         <CardHeader>
-          <CardTitle>Deep-link client WhatsApp</CardTitle>
+          <CardTitle className="inline-flex items-center gap-2">
+            <Link2 className="h-4 w-4 text-primary" aria-hidden />
+            Deep-link client WhatsApp
+          </CardTitle>
           <CardDescription>
             Les clients ouvrent ce lien pour lier la conversation au restaurant (
             <code className="rounded bg-muted px-1 text-xs">RESTO-{restaurant.slug}</code>).
@@ -177,6 +183,7 @@ export function SettingsClient({
                 setTimeout(() => setCopied(false), 1500);
               }}
             >
+              <Copy className="h-3.5 w-3.5" aria-hidden />
               {copied ? "Copié" : "Copier"}
             </Button>
           </div>

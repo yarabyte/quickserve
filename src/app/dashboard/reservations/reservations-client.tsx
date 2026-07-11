@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
+import { CalendarDays, Check, Users, X } from "lucide-react";
 
 import { setReservationStatus } from "@/lib/dashboard/actions";
 import { PageHeader } from "@/components/dashboard/page-header";
@@ -28,6 +29,7 @@ export function ReservationsClient({ reservations }: { reservations: Reservation
   return (
     <div className="space-y-6">
       <PageHeader
+        icon={CalendarDays}
         title={t("dash.reservations.title", lang)}
         description="Confirmer ou annuler les demandes clients"
       />
@@ -36,7 +38,8 @@ export function ReservationsClient({ reservations }: { reservations: Reservation
         {reservations.length === 0 ? (
           <Card>
             <CardContent className="py-14 text-center">
-              <p className="font-display text-lg">{t("dash.reservations.empty", lang)}</p>
+              <CalendarDays className="mx-auto h-10 w-10 text-muted-foreground/50" aria-hidden />
+              <p className="mt-3 font-display text-lg">{t("dash.reservations.empty", lang)}</p>
               <p className="mt-1 text-sm text-muted-foreground">
                 Les demandes WhatsApp s&apos;afficheront ici.
               </p>
@@ -48,10 +51,15 @@ export function ReservationsClient({ reservations }: { reservations: Reservation
               <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
                 <div>
                   <CardTitle className="text-base">{r.customerLabel}</CardTitle>
-                  <p className="mt-1.5 text-sm text-muted-foreground">
-                    {new Date(r.dateTime).toLocaleString("fr-FR")}
-                    {" · "}
-                    <span className="font-medium text-foreground">{r.partySize} pers.</span>
+                  <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+                    <span className="inline-flex items-center gap-1.5">
+                      <CalendarDays className="h-3.5 w-3.5" aria-hidden />
+                      {new Date(r.dateTime).toLocaleString("fr-FR")}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 font-medium text-foreground">
+                      <Users className="h-3.5 w-3.5" aria-hidden />
+                      {r.partySize} pers.
+                    </span>
                   </p>
                 </div>
                 <Badge
@@ -84,6 +92,7 @@ export function ReservationsClient({ reservations }: { reservations: Reservation
                         })
                       }
                     >
+                      <Check className="h-3.5 w-3.5" aria-hidden />
                       Confirmer
                     </Button>
                     <Button
@@ -97,6 +106,7 @@ export function ReservationsClient({ reservations }: { reservations: Reservation
                         })
                       }
                     >
+                      <X className="h-3.5 w-3.5" aria-hidden />
                       Annuler
                     </Button>
                   </div>

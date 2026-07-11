@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { ClipboardList, Settings, Shield, UtensilsCrossed } from "lucide-react";
 
 import { auth } from "@/auth";
 import { requireRole } from "@/lib/auth/tenant";
@@ -28,6 +29,7 @@ export default async function AdminPage() {
   return (
     <div className="space-y-6">
       <PageHeader
+        icon={Shield}
         title="Admin — Restaurants"
         description="Vue SUPERADMIN · abonnements et accès rapides"
       />
@@ -62,21 +64,24 @@ export default async function AdminPage() {
             </CardHeader>
             <CardContent className="flex flex-wrap gap-3 text-sm">
               <Link
-                className="rounded-lg bg-surface px-3 py-1.5 font-medium text-primary ring-1 ring-border hover:bg-muted"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-surface px-3 py-1.5 font-medium text-primary ring-1 ring-border hover:bg-muted"
                 href={`/dashboard/orders?restaurantId=${r.id}`}
               >
+                <ClipboardList className="h-3.5 w-3.5" aria-hidden />
                 Commandes
               </Link>
               <Link
-                className="rounded-lg bg-surface px-3 py-1.5 font-medium text-primary ring-1 ring-border hover:bg-muted"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-surface px-3 py-1.5 font-medium text-primary ring-1 ring-border hover:bg-muted"
                 href={`/dashboard/menu?restaurantId=${r.id}`}
               >
+                <UtensilsCrossed className="h-3.5 w-3.5" aria-hidden />
                 Menu
               </Link>
               <Link
-                className="rounded-lg bg-surface px-3 py-1.5 font-medium text-primary ring-1 ring-border hover:bg-muted"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-surface px-3 py-1.5 font-medium text-primary ring-1 ring-border hover:bg-muted"
                 href={`/dashboard/settings?restaurantId=${r.id}`}
               >
+                <Settings className="h-3.5 w-3.5" aria-hidden />
                 Réglages
               </Link>
               {r.trialEndsAt ? (
