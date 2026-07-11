@@ -24,12 +24,12 @@ export function PageHeader({
     >
       <div className="flex min-w-0 items-start gap-3">
         {Icon ? (
-          <span className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary ring-1 ring-primary/15">
-            <Icon className="h-5 w-5" aria-hidden />
+          <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/15 sm:h-11 sm:w-11 sm:rounded-2xl">
+            <Icon className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden />
           </span>
         ) : null}
         <div className="min-w-0 space-y-1">
-          <h1 className="font-display text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+          <h1 className="font-display text-xl font-semibold tracking-tight text-foreground sm:text-2xl md:text-3xl">
             {title}
           </h1>
           {description ? (

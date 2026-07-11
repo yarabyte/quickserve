@@ -28,14 +28,17 @@ export function BrandLogo({
   size = "md",
   wordmarkClassName,
   markClassName,
+  /** Hide the wordmark below the `sm` breakpoint (icon only on phones). */
+  compactOnMobile = false,
 }: {
   className?: string;
   size?: keyof typeof markSize;
   wordmarkClassName?: string;
   markClassName?: string;
+  compactOnMobile?: boolean;
 }) {
   return (
-    <span className={cn("inline-flex items-center gap-2.5", className)}>
+    <span className={cn("inline-flex min-w-0 items-center gap-2 sm:gap-2.5", className)}>
       <span
         className={cn(
           "inline-flex shrink-0 items-center justify-center bg-primary text-primary-foreground shadow-sm",
@@ -50,11 +53,13 @@ export function BrandLogo({
         className={cn(
           "font-display font-semibold tracking-tight text-foreground",
           wordSize[size],
+          compactOnMobile && "hidden sm:inline",
           wordmarkClassName,
         )}
       >
         QuickServe
       </span>
+      {compactOnMobile ? <span className="sr-only sm:hidden">QuickServe</span> : null}
     </span>
   );
 }

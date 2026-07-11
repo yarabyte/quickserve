@@ -34,7 +34,7 @@ export function ReservationsClient({ reservations }: { reservations: Reservation
         description="Confirmer ou annuler les demandes clients"
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
         {reservations.length === 0 ? (
           <Card className="sm:col-span-2 xl:col-span-3">
             <CardContent className="py-14 text-center">

@@ -104,7 +104,7 @@ export function OrdersClient({
         }
       />
 
-      <div className="flex flex-wrap gap-2">
+      <div className="-mx-3 flex gap-2 overflow-x-auto overscroll-x-contain px-3 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 [&::-webkit-scrollbar]:hidden">
         {(["ALL", "CONFIRMED", "PREPARING", "READY", "DELIVERED", "CANCELLED"] as const).map(
           (s) => {
             const Icon = filterIcon[s];
@@ -113,6 +113,7 @@ export function OrdersClient({
                 key={s}
                 size="sm"
                 variant={statusFilter === s ? "default" : "outline"}
+                className="shrink-0"
                 onClick={() =>
                   router.push(s === "ALL" ? "/dashboard/orders" : `/dashboard/orders?status=${s}`)
                 }
@@ -125,7 +126,7 @@ export function OrdersClient({
         )}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
         {orders.length === 0 ? (
           <Card className="sm:col-span-2 xl:col-span-3">
             <CardContent className="py-14 text-center">

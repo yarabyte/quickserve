@@ -84,15 +84,15 @@ export function CookieConsent() {
       role="dialog"
       aria-labelledby="cookie-consent-title"
       aria-describedby="cookie-consent-desc"
-      className="fixed inset-x-0 bottom-0 z-[100] p-4 md:p-6"
+      className="fixed inset-x-0 bottom-0 z-[100] p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:p-4 md:p-6"
       lang={lang}
     >
-      <div className="mx-auto flex max-w-3xl flex-col gap-4 rounded-2xl border border-border bg-card p-4 shadow-[0_12px_40px_-12px_rgba(15,92,76,0.35)] sm:flex-row sm:items-center sm:gap-5 sm:p-5">
+      <div className="mx-auto flex max-w-3xl flex-col gap-3 rounded-2xl border border-border bg-card p-3.5 shadow-[0_12px_40px_-12px_rgba(15,92,76,0.35)] sm:flex-row sm:items-center sm:gap-5 sm:p-5">
         <div className="flex min-w-0 flex-1 gap-3">
           <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <Cookie className="h-4 w-4" aria-hidden />
           </span>
-          <div className="min-w-0 space-y-1.5">
+          <div className="min-w-0 space-y-1">
             <p
               id="cookie-consent-title"
               className="font-display text-sm font-semibold tracking-tight text-foreground"
@@ -107,11 +107,16 @@ export function CookieConsent() {
             </p>
           </div>
         </div>
-        <div className="flex shrink-0 flex-wrap gap-2 sm:flex-col sm:items-stretch">
-          <Button size="sm" onClick={() => save("accepted")}>
+        <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:shrink-0 sm:flex-col sm:items-stretch">
+          <Button size="sm" className="w-full" onClick={() => save("accepted")}>
             {t("cookies.accept", lang)}
           </Button>
-          <Button size="sm" variant="outline" onClick={() => save("rejected")}>
+          <Button
+            size="sm"
+            variant="outline"
+            className="w-full"
+            onClick={() => save("rejected")}
+          >
             {t("cookies.reject", lang)}
           </Button>
         </div>

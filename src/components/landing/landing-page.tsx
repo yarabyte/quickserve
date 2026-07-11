@@ -34,11 +34,11 @@ export function LandingPage() {
 
   return (
     <main className="landing flex flex-1 flex-col" lang={lang}>
-      <header className="landing-fade absolute inset-x-0 top-0 z-20 flex items-center justify-between px-6 py-5 md:px-10">
-        <Link href="/" className="transition hover:opacity-90">
-          <BrandLogo size="md" />
+      <header className="landing-fade absolute inset-x-0 top-0 z-20 flex items-center justify-between gap-3 px-4 py-4 sm:px-6 sm:py-5 md:px-10">
+        <Link href="/" className="min-w-0 transition hover:opacity-90">
+          <BrandLogo size="md" compactOnMobile />
         </Link>
-        <div className="flex items-center gap-4">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-4">
           <div
             className="inline-flex rounded-lg border border-border bg-card p-0.5 text-xs font-medium shadow-sm"
             role="group"
@@ -78,7 +78,7 @@ export function LandingPage() {
         </div>
       </header>
 
-      <section className="relative flex min-h-[100svh] flex-col justify-end overflow-hidden md:justify-center">
+      <section className="relative flex flex-col justify-center overflow-hidden pt-20 md:min-h-[100svh] md:pt-0">
         <div
           className="absolute inset-0"
           style={{
@@ -96,32 +96,32 @@ export function LandingPage() {
           aria-hidden
         />
 
-        <div className="relative z-10 mx-auto grid w-full max-w-6xl gap-12 px-6 pb-16 pt-28 md:grid-cols-[1.1fr_0.9fr] md:items-center md:gap-16 md:px-10 md:pb-24 md:pt-20">
-          <div className="landing-fade space-y-6">
-            <h1 className="max-w-xl font-display text-2xl font-medium leading-snug tracking-tight text-foreground sm:text-3xl md:text-4xl">
+        <div className="relative z-10 mx-auto grid w-full max-w-6xl gap-8 px-4 pb-12 pt-6 sm:gap-12 sm:px-6 sm:pb-16 md:grid-cols-[1.1fr_0.9fr] md:items-center md:gap-16 md:px-10 md:pb-24 md:pt-20">
+          <div className="landing-fade space-y-5 sm:space-y-6">
+            <h1 className="max-w-xl font-display text-[1.65rem] font-medium leading-snug tracking-tight text-foreground sm:text-3xl md:text-4xl">
               {t("landing.headline", lang)}
             </h1>
-            <p className="max-w-lg text-base leading-relaxed text-muted-foreground sm:text-lg">
+            <p className="max-w-lg text-sm leading-relaxed text-muted-foreground sm:text-base md:text-lg">
               {t("landing.sub", lang)}
             </p>
-            <div className="flex flex-wrap items-center gap-3 pt-1">
+            <div className="flex flex-col gap-3 pt-1 sm:flex-row sm:flex-wrap sm:items-center">
               <Link
                 href="/onboarding"
-                className="inline-flex h-11 items-center gap-2 rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground transition hover:bg-accent"
+                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground transition hover:bg-accent sm:w-auto"
               >
                 {t("landing.cta_primary", lang)}
                 <ArrowRight className="h-4 w-4" aria-hidden />
               </Link>
               <Link
                 href="/dashboard"
-                className="inline-flex h-11 items-center rounded-lg border border-border bg-card px-5 text-sm font-medium text-foreground shadow-sm transition hover:bg-muted"
+                className="inline-flex h-11 w-full items-center justify-center rounded-lg border border-border bg-card px-5 text-sm font-medium text-foreground shadow-sm transition hover:bg-muted sm:w-auto"
               >
                 {t("landing.cta_secondary", lang)}
               </Link>
             </div>
           </div>
 
-          <div className="landing-phone mx-auto w-full max-w-[320px] md:mx-0 md:justify-self-end">
+          <div className="landing-phone mx-auto w-full max-w-[280px] sm:max-w-[320px] md:mx-0 md:justify-self-end">
             <div className="overflow-hidden rounded-[1.75rem] bg-[#0b1410] shadow-[0_20px_50px_-18px_rgba(15,92,76,0.45)] ring-1 ring-border">
               <div className="flex items-center gap-3 bg-[#075e54] px-4 py-3 text-white">
                 <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15">
@@ -164,15 +164,15 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section className="relative border-t border-border/60 bg-surface/80 px-6 py-20 md:px-10">
+      <section className="relative border-t border-border/60 bg-surface/80 px-4 py-14 sm:px-6 sm:py-20 md:px-10">
         <div className="mx-auto max-w-5xl">
-          <h2 className="font-display text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
+          <h2 className="font-display text-2xl font-semibold tracking-tight text-foreground sm:text-3xl md:text-4xl">
             {t("landing.steps.title", lang)}
           </h2>
-          <p className="mt-3 max-w-lg text-muted-foreground">
+          <p className="mt-3 max-w-lg text-sm text-muted-foreground sm:text-base">
             {t("landing.steps.intro", lang)}
           </p>
-          <ol className="mt-12 grid gap-10 md:grid-cols-3 md:gap-8">
+          <ol className="mt-10 grid gap-8 sm:mt-12 sm:gap-10 md:grid-cols-3 md:gap-8">
             <Step
               n="01"
               icon={<Sheet className="h-5 w-5" aria-hidden />}
@@ -195,7 +195,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section className="relative overflow-hidden px-6 py-20 md:px-10">
+      <section className="relative overflow-hidden px-4 py-14 sm:px-6 sm:py-20 md:px-10">
         <div
           className="pointer-events-none absolute inset-0 opacity-40"
           style={{
@@ -206,16 +206,16 @@ export function LandingPage() {
         />
         <div className="relative mx-auto flex max-w-5xl flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="font-display text-3xl font-semibold tracking-tight md:text-4xl">
+            <p className="font-display text-2xl font-semibold tracking-tight sm:text-3xl md:text-4xl">
               {t("landing.cta.title", lang)}
             </p>
-            <p className="mt-3 max-w-md text-muted-foreground">
+            <p className="mt-3 max-w-md text-sm text-muted-foreground sm:text-base">
               {t("landing.cta.body", lang)}
             </p>
           </div>
           <Link
             href="/onboarding"
-            className="inline-flex h-11 shrink-0 items-center gap-2 rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground transition hover:bg-accent"
+            className="inline-flex h-11 w-full shrink-0 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground transition hover:bg-accent sm:w-auto"
           >
             {t("landing.cta.button", lang)}
             <ArrowRight className="h-4 w-4" aria-hidden />
@@ -223,10 +223,10 @@ export function LandingPage() {
         </div>
       </section>
 
-      <footer className="border-t border-border/60 px-6 py-8 md:px-10">
-        <div className="mx-auto flex max-w-5xl flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+      <footer className="border-t border-border/60 px-4 py-8 pb-28 sm:px-6 md:px-10">
+        <div className="mx-auto flex max-w-5xl flex-col gap-3 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <BrandLogo size="sm" />
-          <span>{t("landing.footer.tagline", lang)}</span>
+          <span className="text-xs sm:text-sm">{t("landing.footer.tagline", lang)}</span>
         </div>
       </footer>
     </main>

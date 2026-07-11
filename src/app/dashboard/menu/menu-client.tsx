@@ -119,7 +119,7 @@ export function MenuClient({
         </Card>
       ) : null}
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-3">
         {items.length === 0 ? (
           <Card className="sm:col-span-2 xl:col-span-3">
             <CardContent className="flex flex-col items-center gap-2 py-10 text-center text-sm text-muted-foreground">

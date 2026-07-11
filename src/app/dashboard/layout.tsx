@@ -45,14 +45,14 @@ export default async function DashboardLayout({
       <header className="sticky top-0 z-40 border-b border-border/80 bg-card/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
           <div className="flex min-w-0 items-center gap-6">
-            <Link href="/dashboard" className="transition hover:opacity-90">
-              <BrandLogo size="md" />
+            <Link href="/dashboard" className="min-w-0 transition hover:opacity-90">
+              <BrandLogo size="md" compactOnMobile />
             </Link>
             <div className="hidden lg:block">
               <DashboardNav items={nav} />
             </div>
           </div>
-          <div className="flex shrink-0 items-center gap-3">
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             <div className="hidden text-right sm:block">
               <p className="max-w-[180px] truncate text-xs font-medium text-foreground">
                 {session.user.email}
@@ -64,7 +64,7 @@ export default async function DashboardLayout({
             <form action={logoutAction}>
               <Button type="submit" variant="outline" size="sm">
                 <LogOut className="h-3.5 w-3.5" aria-hidden />
-                {t("dash.logout", lang)}
+                <span className="hidden sm:inline">{t("dash.logout", lang)}</span>
               </Button>
             </form>
           </div>
@@ -73,7 +73,7 @@ export default async function DashboardLayout({
           <DashboardNav items={nav} />
         </div>
       </header>
-      <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>
+      <main className="mx-auto max-w-6xl px-3 py-6 sm:px-4 sm:py-8">{children}</main>
     </div>
   );
 }

@@ -59,19 +59,21 @@ export function SheetSetupClient({
         aria-hidden
       />
 
-      <header className="relative z-10 flex items-center justify-between px-6 py-5 md:px-10">
-        <Link href="/" className="transition hover:opacity-90">
-          <BrandLogo size="sm" />
+      <header className="relative z-10 flex items-center justify-between gap-3 px-4 py-4 sm:px-6 sm:py-5 md:px-10">
+        <Link href="/" className="min-w-0 transition hover:opacity-90">
+          <BrandLogo size="sm" compactOnMobile />
         </Link>
-        <p className="truncate text-sm text-muted-foreground">{restaurantName}</p>
+        <p className="max-w-[45%] truncate text-right text-sm text-muted-foreground sm:max-w-none">
+          {restaurantName}
+        </p>
       </header>
 
-      <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-1 flex-col gap-10 px-6 pb-16 pt-4 md:flex-row md:items-start md:gap-14 md:px-10 md:pt-10">
+      <div className="relative z-10 mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 px-4 pb-16 pt-2 sm:gap-10 sm:px-6 md:flex-row md:items-start md:gap-14 md:px-10 md:pt-10">
         <aside className="md:sticky md:top-10 md:w-[38%] md:shrink-0">
           <p className="text-xs font-semibold uppercase tracking-wider text-primary">
             Étape 2 sur 2
           </p>
-          <h1 className="mt-3 font-display text-3xl font-semibold tracking-tight md:text-4xl">
+          <h1 className="mt-3 font-display text-2xl font-semibold tracking-tight sm:text-3xl md:text-4xl">
             Activer Google Sheets
           </h1>
           <p className="mt-3 max-w-sm text-sm leading-relaxed text-muted-foreground md:text-base">
@@ -79,23 +81,25 @@ export function SheetSetupClient({
             Reservations).
           </p>
 
-          <ol className="mt-8 hidden space-y-4 md:block">
-            <li className="flex gap-3 opacity-60">
+          <ol className="mt-6 flex gap-2 md:mt-8 md:block md:space-y-4">
+            <li className="flex flex-1 items-center gap-2 rounded-lg bg-primary/10 px-3 py-2 opacity-80 md:flex-none md:rounded-none md:bg-transparent md:px-0 md:py-0 md:opacity-60">
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-semibold text-primary">
                 <CheckCircle2 className="h-4 w-4" aria-hidden />
               </span>
-              <div>
-                <p className="text-sm font-semibold">Compte & restaurant</p>
-                <p className="text-xs text-muted-foreground">Terminé</p>
+              <div className="min-w-0">
+                <p className="truncate text-xs font-semibold sm:text-sm">Compte</p>
+                <p className="hidden text-xs text-muted-foreground md:block">Terminé</p>
               </div>
             </li>
-            <li className="flex gap-3">
+            <li className="flex flex-1 items-center gap-2 rounded-lg bg-primary/10 px-3 py-2 md:flex-none md:rounded-none md:bg-transparent md:px-0 md:py-0">
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
                 2
               </span>
-              <div>
-                <p className="text-sm font-semibold">Google Sheets</p>
-                <p className="text-xs text-muted-foreground">Menu + deep-link WhatsApp</p>
+              <div className="min-w-0">
+                <p className="truncate text-xs font-semibold sm:text-sm">Sheets</p>
+                <p className="hidden text-xs text-muted-foreground md:block">
+                  Menu + deep-link WhatsApp
+                </p>
               </div>
             </li>
           </ol>
@@ -264,16 +268,16 @@ export function SheetSetupClient({
                 </div>
               </div>
               {qrDataUrl ? (
-                <div className="flex items-start gap-3">
+                <div className="flex flex-col items-start gap-3 sm:flex-row">
                   <div className="rounded-xl border border-border bg-white p-2 shadow-sm">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={qrDataUrl}
                       alt={`QR RESTO-${slug}`}
-                      className="h-40 w-40"
+                      className="h-36 w-36 sm:h-40 sm:w-40"
                     />
                   </div>
-                  <p className="flex items-start gap-1.5 pt-1 text-xs text-muted-foreground">
+                  <p className="flex items-start gap-1.5 text-xs text-muted-foreground sm:pt-1">
                     <QrCode className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
                     Scannez pour ouvrir le chat avec le bon restaurant.
                   </p>

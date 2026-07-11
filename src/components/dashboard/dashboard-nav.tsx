@@ -36,7 +36,7 @@ export function DashboardNav({
           );
         })}
       </nav>
-      <nav className="flex gap-1.5 overflow-x-auto border-t border-border/60 px-4 py-2.5 lg:hidden">
+      <nav className="flex gap-1.5 overflow-x-auto overscroll-x-contain border-t border-border/60 px-3 py-2.5 [-ms-overflow-style:none] [scrollbar-width:none] sm:px-4 lg:hidden [&::-webkit-scrollbar]:hidden">
         {items.map((item) => {
           const active = pathname.startsWith(item.href);
           const Icon = NAV_ICONS[item.icon];

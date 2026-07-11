@@ -59,7 +59,7 @@ export function OnboardingForm() {
             });
           }}
         >
-          <section className="space-y-4 p-6 md:p-8">
+          <section className="space-y-4 p-4 sm:p-6 md:p-8">
             <div>
               <h2 className="font-display text-lg font-semibold tracking-tight">
                 Votre restaurant
@@ -141,7 +141,7 @@ export function OnboardingForm() {
             </div>
           </section>
 
-          <section className="space-y-4 p-6 md:p-8">
+          <section className="space-y-4 p-4 sm:p-6 md:p-8">
             <div>
               <h2 className="font-display text-lg font-semibold tracking-tight">
                 Compte propriétaire
@@ -182,7 +182,7 @@ export function OnboardingForm() {
             </div>
           </section>
 
-          <div className="space-y-3 p-6 md:p-8">
+          <div className="space-y-3 p-4 sm:p-6 md:p-8">
             {error ? (
               <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800 ring-1 ring-red-200">
                 {error}
