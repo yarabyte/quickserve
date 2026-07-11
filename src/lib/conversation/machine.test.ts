@@ -279,6 +279,28 @@ describe("handleInput — parcours réservation", () => {
       ),
     ).toBe(true);
   });
+
+  it("confirme aussi via le titre WATI Confirmer (alias order_confirm)", () => {
+    const current = conv({
+      state: "RESERVATION_CONFIRM",
+      context: {
+        items: [],
+        reservation: {
+          dateTimeIso: "2026-07-20T19:30:00.000Z",
+          partySize: 2,
+        },
+      },
+    });
+
+    const s = step(current, "Confirmer");
+    expect(s.outcome.nextState).toBe("START");
+    expect(s.outcome.context.pendingReservation).toMatchObject({ partySize: 2 });
+    expect(
+      s.outcome.effects.some(
+        (e) => e.type === "send_text" && e.text.includes("enregistrée"),
+      ),
+    ).toBe(true);
+  });
 });
 
 describe("handleInput — langue", () => {

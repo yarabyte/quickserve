@@ -959,14 +959,18 @@ function handleReservationConfirm(
   restaurant: RestaurantView,
   value: string,
 ): MachineResult {
-  if (value === BUTTON.RES_CANCEL) {
+  // WATI often returns the button title ("Confirmer") which aliases to ORDER_CONFIRM
+  const isCancel = value === BUTTON.RES_CANCEL || value === BUTTON.ORDER_CANCEL;
+  const isConfirm = value === BUTTON.RES_CONFIRM || value === BUTTON.ORDER_CONFIRM;
+
+  if (isCancel) {
     return result("START", ctx, { reservation: undefined, pendingReservation: undefined }, lang, [
       text(t("reservation_cancelled", lang)),
       startButtons(lang, restaurant.name),
     ]);
   }
 
-  if (value === BUTTON.RES_CONFIRM) {
+  if (isConfirm) {
     const dateTimeIso = ctx.reservation?.dateTimeIso;
     const partySize = ctx.reservation?.partySize;
     if (!dateTimeIso || !partySize) {
