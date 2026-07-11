@@ -46,6 +46,9 @@ export function mergeContext(
     pendingMenuItemRef: Object.prototype.hasOwnProperty.call(patch, "pendingMenuItemRef")
       ? patch.pendingMenuItemRef
       : base.pendingMenuItemRef,
+    lastAddedRef: Object.prototype.hasOwnProperty.call(patch, "lastAddedRef")
+      ? patch.lastAddedRef
+      : base.lastAddedRef,
     reservation: Object.prototype.hasOwnProperty.call(patch, "reservation")
       ? patch.reservation
       : base.reservation,
@@ -72,6 +75,23 @@ export function addToCart(items: CartItem[], menuItemRef: string, qty = 1): Cart
     return next;
   }
   next.push({ menuItemRef, qty });
+  return next;
+}
+
+/** Set absolute quantity for a cart line (1–20). Removes the line if qty < 1. */
+export function setCartQty(items: CartItem[], menuItemRef: string, qty: number): CartItem[] {
+  const q = Math.floor(qty);
+  if (q < 1) {
+    return items.filter((i) => i.menuItemRef !== menuItemRef);
+  }
+  const capped = Math.min(20, q);
+  const next = items.map((i) => ({ ...i }));
+  const existing = next.find((i) => i.menuItemRef === menuItemRef);
+  if (existing) {
+    existing.qty = capped;
+    return next;
+  }
+  next.push({ menuItemRef, qty: capped });
   return next;
 }
 

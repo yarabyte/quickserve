@@ -122,16 +122,11 @@ describe("handleInput — parcours commande livraison", () => {
     expect(s.outcome.context.browse).toMatchObject({ mode: "items", category: "Plats" });
     current = step(current, categoryRowId("Plats"), "list").next;
 
-    // Sélection Poulet DG → quantité
+    // Sélection Poulet DG → ajout ×1 direct au panier
     s = step(current, itemRowId("sheet-row-1"), "list");
-    expect(s.outcome.nextState).toBe("COLLECTING_QTY");
-    expect(s.outcome.context.pendingMenuItemRef).toBe("sheet-row-1");
-    current = s.next;
-
-    // Quantité 2 → panier
-    s = step(current, BUTTON.QTY_2);
     expect(s.outcome.nextState).toBe("CART");
-    expect(s.outcome.context.items).toEqual([{ menuItemRef: "sheet-row-1", qty: 2 }]);
+    expect(s.outcome.context.items).toEqual([{ menuItemRef: "sheet-row-1", qty: 1 }]);
+    expect(s.outcome.context.lastAddedRef).toBe("sheet-row-1");
     expect(
       s.outcome.effects.some(
         (e) => e.type === "send_text" && e.text.includes("Poulet DG"),
@@ -139,16 +134,23 @@ describe("handleInput — parcours commande livraison", () => {
     ).toBe(true);
     current = s.next;
 
-    // Autre plat → catégories
+    // Ajuster quantité via texte libre
+    s = step(current, "2", "text");
+    expect(s.outcome.nextState).toBe("CART");
+    expect(s.outcome.context.items).toEqual([{ menuItemRef: "sheet-row-1", qty: 2 }]);
+    current = s.next;
+
+    // Autre plat → reste dans la même catégorie (Plats)
     s = step(current, BUTTON.CART_ADD);
     expect(s.outcome.nextState).toBe("BROWSING_MENU");
+    expect(s.outcome.context.browse).toMatchObject({
+      mode: "items",
+      category: "Plats",
+    });
     current = s.next;
     s = step(current, categoryRowId("Boissons"), "list");
     current = s.next;
     s = step(current, itemRowId("sheet-row-4"), "list");
-    expect(s.outcome.nextState).toBe("COLLECTING_QTY");
-    current = s.next;
-    s = step(current, BUTTON.QTY_1);
     expect(s.outcome.nextState).toBe("CART");
     expect(s.outcome.context.items).toEqual([
       { menuItemRef: "sheet-row-1", qty: 2 },
@@ -202,22 +204,36 @@ describe("handleInput — parcours commande livraison", () => {
     });
 
     let s = step(current, itemRowId("sheet-row-1"), "list");
-    expect(s.outcome.nextState).toBe("COLLECTING_QTY");
-    current = s.next;
-    s = step(current, BUTTON.QTY_1);
+    expect(s.outcome.nextState).toBe("CART");
+    expect(s.outcome.context.items).toEqual([{ menuItemRef: "sheet-row-1", qty: 1 }]);
     current = s.next;
     s = step(current, BUTTON.CART_ADD);
+    expect(s.outcome.context.browse).toMatchObject({ mode: "items", category: "Plats" });
     current = s.next;
     s = step(current, categoryRowId("Boissons"), "list");
     current = s.next;
     s = step(current, itemRowId("sheet-row-4"), "list");
-    current = s.next;
-    s = step(current, BUTTON.QTY_1);
 
     expect(s.outcome.context.items).toEqual([
       { menuItemRef: "sheet-row-1", qty: 1 },
       { menuItemRef: "sheet-row-4", qty: 1 },
     ]);
+    expect(s.outcome.nextState).toBe("CART");
+  });
+
+  it("ajoute le même plat plusieurs fois pour augmenter la quantité", () => {
+    let current = conv({
+      state: "BROWSING_MENU",
+      context: { items: [], browse: { mode: "items", category: "Plats", page: 1 } },
+    });
+
+    let s = step(current, itemRowId("sheet-row-1"), "list");
+    expect(s.outcome.context.items).toEqual([{ menuItemRef: "sheet-row-1", qty: 1 }]);
+    current = s.next;
+    s = step(current, BUTTON.CART_ADD);
+    current = s.next;
+    s = step(current, itemRowId("sheet-row-1"), "list");
+    expect(s.outcome.context.items).toEqual([{ menuItemRef: "sheet-row-1", qty: 2 }]);
     expect(s.outcome.nextState).toBe("CART");
   });
 });

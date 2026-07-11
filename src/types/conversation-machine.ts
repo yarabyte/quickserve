@@ -28,8 +28,10 @@ export type ConversationContext = {
   items: CartItem[];
   serviceType?: OrderServiceType;
   deliveryAddress?: string;
-  /** Item selected, waiting for quantity (1–3) */
+  /** Item selected, waiting for quantity (1–3) — optional after default qty=1 */
   pendingMenuItemRef?: string;
+  /** Last dish added — used to adjust qty via free-text number in CART */
+  lastAddedRef?: string;
   browse?: {
     mode: BrowseMode;
     category?: string;

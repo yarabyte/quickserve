@@ -18,6 +18,7 @@ import {
   mergeContext,
   parseContext,
   resolveCartLines,
+  setCartQty,
 } from "./context";
 import {
   categoryRowId,
@@ -38,6 +39,8 @@ export const BUTTON = {
   CART_ADD: "cart_add",
   CART_CHECKOUT: "cart_checkout",
   CART_CLEAR: "cart_clear",
+  CART_VIEW: "cart_view",
+  CART_EDIT: "cart_edit",
   QTY_1: "qty_1",
   QTY_2: "qty_2",
   QTY_3: "qty_3",
@@ -83,6 +86,12 @@ export function normalizeButtonValue(value: string): string {
     [BUTTON.CART_CLEAR]: BUTTON.CART_CLEAR,
     vider: BUTTON.CART_CLEAR,
     clear: BUTTON.CART_CLEAR,
+    [BUTTON.CART_VIEW]: BUTTON.CART_VIEW,
+    panier: BUTTON.CART_VIEW,
+    cart: BUTTON.CART_VIEW,
+    [BUTTON.CART_EDIT]: BUTTON.CART_EDIT,
+    modifier: BUTTON.CART_EDIT,
+    "edit cart": BUTTON.CART_EDIT,
     [BUTTON.QTY_1]: BUTTON.QTY_1,
     [BUTTON.QTY_2]: BUTTON.QTY_2,
     [BUTTON.QTY_3]: BUTTON.QTY_3,
@@ -234,21 +243,19 @@ function paginationButtons(
   return buttons(t("menu_items_body", lang, { page, pages }), btns.slice(0, 3));
 }
 
-function cartEffects(
-  lang: ConversationLanguage,
-  ctx: ConversationContext,
-  menu: MenuItemView[],
-): OutboundEffect[] {
-  if (ctx.items.length === 0) {
-    return [
-      text(t("cart_empty", lang)),
-      buttons(t("unknown", lang), [
-        { id: BUTTON.ORDER, title: t("btn_order", lang) },
-        { id: BUTTON.HOME, title: t("back_home", lang) },
-      ]),
-    ];
+/** Shortcuts under a single-page dish list (back / cart / home). */
+function browseShortcuts(lang: ConversationLanguage, hasCart: boolean): OutboundEffect {
+  const btns: Array<{ id: string; title: string }> = [
+    { id: BUTTON.ORDER, title: t("menu_categories_button", lang) },
+  ];
+  if (hasCart) {
+    btns.push({ id: BUTTON.CART_VIEW, title: t("btn_view_cart", lang) });
   }
+  btns.push({ id: BUTTON.HOME, title: t("back_home", lang) });
+  return buttons(t("menu_items_body", lang, { page: 1, pages: 1 }), btns.slice(0, 3));
+}
 
+function formatCartLines(lang: ConversationLanguage, ctx: ConversationContext, menu: MenuItemView[]) {
   const lines = resolveCartLines(ctx.items, menu);
   const linesText = lines
     .map((line) =>
@@ -260,15 +267,111 @@ function cartEffects(
     )
     .join("\n");
   const total = cartTotalXAF(ctx.items, menu);
+  return { linesText, total };
+}
+
+function cartEffects(
+  lang: ConversationLanguage,
+  ctx: ConversationContext,
+  menu: MenuItemView[],
+  justAdded?: { name: string; qty: number },
+): OutboundEffect[] {
+  if (ctx.items.length === 0) {
+    return [
+      text(t("cart_empty", lang)),
+      buttons(t("unknown", lang), [
+        { id: BUTTON.ORDER, title: t("btn_order", lang) },
+        { id: BUTTON.HOME, title: t("back_home", lang) },
+      ]),
+    ];
+  }
+
+  const { linesText, total } = formatCartLines(lang, ctx, menu);
+  const body = justAdded
+    ? t("cart_after_add", lang, {
+        name: justAdded.name,
+        qty: justAdded.qty,
+        lines: linesText,
+        total,
+      })
+    : t("cart_header", lang, { lines: linesText, total });
 
   return [
-    text(t("cart_header", lang, { lines: linesText, total })),
+    text(body),
     buttons(t("cart_prompt", lang), [
       { id: BUTTON.CART_ADD, title: t("btn_add_item", lang) },
       { id: BUTTON.CART_CHECKOUT, title: t("btn_checkout", lang) },
       { id: BUTTON.CART_CLEAR, title: t("btn_clear_cart", lang) },
     ]),
   ];
+}
+
+function reopenCategoryOrCategories(
+  ctx: ConversationContext,
+  lang: ConversationLanguage,
+  menu: MenuItemView[],
+): MachineResult {
+  const category =
+    ctx.browse?.mode === "items" && ctx.browse.category ? ctx.browse.category : undefined;
+
+  if (category) {
+    const built = buildItemsList(lang, menu, category, 1);
+    if (built) {
+      const effects: OutboundEffect[] = [built.effect];
+      const nav = paginationButtons(lang, built.page, built.pages);
+      if (nav) effects.push(nav);
+      else effects.push(browseShortcuts(lang, ctx.items.length > 0));
+      return result(
+        "BROWSING_MENU",
+        ctx,
+        { browse: { mode: "items", category, page: built.page } },
+        lang,
+        effects,
+      );
+    }
+  }
+
+  const list = buildCategoriesList(lang, menu);
+  return result(
+    "BROWSING_MENU",
+    ctx,
+    { browse: { mode: "categories", page: 1 } },
+    lang,
+    list ? [list] : [text(t("menu_empty", lang))],
+  );
+}
+
+function addItemToCartFlow(
+  ctx: ConversationContext,
+  lang: ConversationLanguage,
+  menu: MenuItemView[],
+  menuItem: MenuItemView,
+  qty: number,
+): MachineResult {
+  const items = addToCart(ctx.items, menuItem.externalRef, qty);
+  const lineQty = items.find((i) => i.menuItemRef === menuItem.externalRef)?.qty ?? qty;
+  const nextCtx = mergeContext(ctx, {
+    items,
+    pendingMenuItemRef: undefined,
+    lastAddedRef: menuItem.externalRef,
+  });
+  const browse =
+    ctx.browse?.mode === "items" && ctx.browse.category
+      ? ctx.browse
+      : { mode: "items" as const, category: menuItem.categoryName, page: 1 };
+
+  return result(
+    "CART",
+    ctx,
+    {
+      items,
+      pendingMenuItemRef: undefined,
+      lastAddedRef: menuItem.externalRef,
+      browse,
+    },
+    lang,
+    cartEffects(lang, nextCtx, menu, { name: menuItem.name, qty: lineQty }),
+  );
 }
 
 function orderSummaryEffects(
@@ -307,6 +410,7 @@ function orderSummaryEffects(
     ),
     buttons(t("btn_confirm", lang), [
       { id: BUTTON.ORDER_CONFIRM, title: t("btn_confirm", lang) },
+      { id: BUTTON.CART_EDIT, title: t("btn_edit_cart", lang) },
       { id: BUTTON.ORDER_CANCEL, title: t("btn_cancel", lang) },
     ]),
   ];
@@ -504,6 +608,7 @@ function handleBrowsingMenu(
     const effects: OutboundEffect[] = [built.effect];
     const nav = paginationButtons(lang, built.page, built.pages);
     if (nav) effects.push(nav);
+    else effects.push(browseShortcuts(lang, ctx.items.length > 0));
     return result(
       "BROWSING_MENU",
       ctx,
@@ -517,19 +622,12 @@ function handleBrowsingMenu(
     ctx.browse?.mode === "items" ? ctx.browse.category : undefined;
   const menuItem = resolveItemSelection(value, menu, browseCategory);
   if (menuItem) {
-    return result(
-      "COLLECTING_QTY",
-      ctx,
-      { pendingMenuItemRef: menuItem.externalRef },
-      lang,
-      [
-        buttons(t("ask_qty", lang, { name: menuItem.name }), [
-          { id: BUTTON.QTY_1, title: t("btn_qty_1", lang) },
-          { id: BUTTON.QTY_2, title: t("btn_qty_2", lang) },
-          { id: BUTTON.QTY_3, title: t("btn_qty_3", lang) },
-        ]),
-      ],
-    );
+    // Default qty = 1 → cart immediately (type 2–20 in cart to adjust)
+    return addItemToCartFlow(ctx, lang, menu, menuItem, 1);
+  }
+
+  if (value === BUTTON.CART_VIEW) {
+    return result("CART", ctx, {}, lang, cartEffects(lang, ctx, menu));
   }
 
   if (value === BUTTON.MENU_NEXT || value === BUTTON.MENU_PREV) {
@@ -552,6 +650,7 @@ function handleBrowsingMenu(
     const effects: OutboundEffect[] = [built.effect];
     const nav = paginationButtons(lang, built.page, built.pages);
     if (nav) effects.push(nav);
+    else effects.push(browseShortcuts(lang, ctx.items.length > 0));
     return result(
       "BROWSING_MENU",
       ctx,
@@ -613,19 +712,7 @@ function handleCollectingQty(
     ]);
   }
 
-  const items = addToCart(ctx.items, ref, qty);
-  const nextCtx = mergeContext(ctx, { items, pendingMenuItemRef: undefined });
-  const lineQty = items.find((i) => i.menuItemRef === ref)?.qty ?? qty;
-  return result(
-    "CART",
-    ctx,
-    { items, pendingMenuItemRef: undefined, browse: undefined },
-    lang,
-    [
-      text(t("item_added", lang, { name: menuItem.name, qty: lineQty })),
-      ...cartEffects(lang, nextCtx, menu),
-    ],
-  );
+  return addItemToCartFlow(ctx, lang, menu, menuItem, qty);
 }
 
 function handleCart(
@@ -636,21 +723,17 @@ function handleCart(
   value: string,
 ): MachineResult {
   if (value === BUTTON.CART_ADD) {
-    const list = buildCategoriesList(lang, menu);
-    return result(
-      "BROWSING_MENU",
-      ctx,
-      { browse: { mode: "categories", page: 1 } },
-      lang,
-      list ? [list] : [text(t("menu_empty", lang))],
-    );
+    return reopenCategoryOrCategories(ctx, lang, menu);
   }
 
   if (value === BUTTON.CART_CLEAR) {
-    return result("START", ctx, { items: [] }, lang, [
-      text(t("cart_cleared", lang)),
-      startButtons(lang, restaurant.name),
-    ]);
+    return result(
+      "START",
+      ctx,
+      { items: [], lastAddedRef: undefined, browse: undefined },
+      lang,
+      [text(t("cart_cleared", lang)), startButtons(lang, restaurant.name)],
+    );
   }
 
   if (value === BUTTON.CART_CHECKOUT) {
@@ -662,6 +745,28 @@ function handleCart(
         { id: BUTTON.SERVICE_DELIVERY, title: t("btn_delivery", lang) },
         { id: BUTTON.SERVICE_PICKUP, title: t("btn_pickup", lang) },
       ]),
+    ]);
+  }
+
+  // Free-text 2–20 → adjust last added dish quantity
+  const qtyNum = Number.parseInt(value, 10);
+  if (
+    Number.isFinite(qtyNum) &&
+    qtyNum >= 1 &&
+    qtyNum <= 20 &&
+    ctx.lastAddedRef
+  ) {
+    const items = setCartQty(ctx.items, ctx.lastAddedRef, qtyNum);
+    const menuItem = menu.find((m) => m.externalRef === ctx.lastAddedRef);
+    const nextCtx = mergeContext(ctx, { items });
+    return result("CART", ctx, { items }, lang, [
+      text(
+        t("cart_qty_updated", lang, {
+          name: menuItem?.name ?? ctx.lastAddedRef,
+          qty: qtyNum,
+        }),
+      ),
+      ...cartEffects(lang, nextCtx, menu),
     ]);
   }
 
@@ -730,10 +835,23 @@ function handleOrderSummary(
   value: string,
 ): MachineResult {
   if (value === BUTTON.ORDER_CANCEL) {
-    return result("BROWSING_MENU", ctx, { serviceType: undefined, deliveryAddress: undefined }, lang, [
-      text(t("order_cancelled", lang)),
-      buildCategoriesList(lang, menu) ?? text(t("menu_empty", lang)),
-    ]);
+    return result(
+      "CART",
+      ctx,
+      { serviceType: undefined, deliveryAddress: undefined },
+      lang,
+      [text(t("order_cancelled", lang)), ...cartEffects(lang, ctx, menu)],
+    );
+  }
+
+  if (value === BUTTON.CART_EDIT) {
+    return result(
+      "CART",
+      ctx,
+      { serviceType: undefined, deliveryAddress: undefined },
+      lang,
+      cartEffects(lang, ctx, menu),
+    );
   }
 
   if (value === BUTTON.ORDER_CONFIRM) {

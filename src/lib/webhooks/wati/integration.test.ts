@@ -155,9 +155,9 @@ describe.runIf(hasDb)("webhook → machine → effects (integration)", () => {
     result = await run(listEvent("item", itemRowId("it-poulet")));
     expect(result.status).toBe("processed");
     conv = await prisma.conversation.findUniqueOrThrow({ where: { waId } });
-    expect(conv.state).toBe("COLLECTING_QTY");
+    expect(conv.state).toBe("CART");
 
-    result = await run(buttonEvent("qty", BUTTON.QTY_2));
+    result = await run(event("qty", "2"));
     expect(result.status).toBe("processed");
     conv = await prisma.conversation.findUniqueOrThrow({ where: { waId } });
     expect(conv.state).toBe("CART");
