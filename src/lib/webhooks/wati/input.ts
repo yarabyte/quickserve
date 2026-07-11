@@ -22,7 +22,9 @@ export function extractNormalizedInput(
 
   const interactiveId =
     message.interactiveButtonReply?.id?.trim() ||
-    message.interactiveButtonReply?.payload?.trim();
+    message.interactiveButtonReply?.payload?.trim() ||
+    message.interactiveButtonReply?.text?.trim() ||
+    message.interactiveButtonReply?.title?.trim();
   if (interactiveId) {
     return {
       kind: "button",
@@ -37,7 +39,9 @@ export function extractNormalizedInput(
 
   const buttonPayload =
     message.buttonReply?.payload?.trim() ||
-    message.buttonReply?.id?.trim();
+    message.buttonReply?.id?.trim() ||
+    message.buttonReply?.text?.trim() ||
+    message.buttonReply?.title?.trim();
   if (buttonPayload) {
     return {
       kind: "button",

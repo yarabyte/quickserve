@@ -49,6 +49,56 @@ export const BUTTON = {
   HOME: "nav_home",
 } as const;
 
+/** Map WATI button titles / aliases → stable button ids */
+export function normalizeButtonValue(value: string): string {
+  const v = value.trim().toLowerCase();
+  const aliases: Record<string, string> = {
+    [BUTTON.ORDER]: BUTTON.ORDER,
+    commander: BUTTON.ORDER,
+    order: BUTTON.ORDER,
+    [BUTTON.RESERVE]: BUTTON.RESERVE,
+    réserver: BUTTON.RESERVE,
+    reserver: BUTTON.RESERVE,
+    reserve: BUTTON.RESERVE,
+    [BUTTON.LANG]: BUTTON.LANG,
+    langue: BUTTON.LANG,
+    language: BUTTON.LANG,
+    [BUTTON.LANG_FR]: BUTTON.LANG_FR,
+    français: BUTTON.LANG_FR,
+    francais: BUTTON.LANG_FR,
+    [BUTTON.LANG_EN]: BUTTON.LANG_EN,
+    english: BUTTON.LANG_EN,
+    [BUTTON.CART_ADD]: BUTTON.CART_ADD,
+    ajouter: BUTTON.CART_ADD,
+    "add more": BUTTON.CART_ADD,
+    [BUTTON.CART_CHECKOUT]: BUTTON.CART_CHECKOUT,
+    valider: BUTTON.CART_CHECKOUT,
+    checkout: BUTTON.CART_CHECKOUT,
+    [BUTTON.CART_CLEAR]: BUTTON.CART_CLEAR,
+    vider: BUTTON.CART_CLEAR,
+    clear: BUTTON.CART_CLEAR,
+    [BUTTON.SERVICE_DELIVERY]: BUTTON.SERVICE_DELIVERY,
+    livraison: BUTTON.SERVICE_DELIVERY,
+    delivery: BUTTON.SERVICE_DELIVERY,
+    [BUTTON.SERVICE_PICKUP]: BUTTON.SERVICE_PICKUP,
+    "à emporter": BUTTON.SERVICE_PICKUP,
+    "a emporter": BUTTON.SERVICE_PICKUP,
+    pickup: BUTTON.SERVICE_PICKUP,
+    [BUTTON.ORDER_CONFIRM]: BUTTON.ORDER_CONFIRM,
+    [BUTTON.RES_CONFIRM]: BUTTON.RES_CONFIRM,
+    confirmer: BUTTON.ORDER_CONFIRM,
+    confirm: BUTTON.ORDER_CONFIRM,
+    [BUTTON.ORDER_CANCEL]: BUTTON.ORDER_CANCEL,
+    [BUTTON.RES_CANCEL]: BUTTON.RES_CANCEL,
+    annuler: BUTTON.ORDER_CANCEL,
+    cancel: BUTTON.ORDER_CANCEL,
+    [BUTTON.HOME]: BUTTON.HOME,
+    retour: BUTTON.HOME,
+    home: BUTTON.HOME,
+  };
+  return aliases[v] ?? value.trim();
+}
+
 const ESTIMATED_ETA_MIN = 35;
 
 function buttons(
@@ -295,7 +345,7 @@ export function handleInput(
   const lang = normalizeLanguage(conversation.language);
   const ctx = parseContext(conversation.context);
   const state = normalizeState(conversation.state);
-  const value = input.value.trim();
+  const value = normalizeButtonValue(input.value.trim());
 
   if (!restaurant.isOpen && state === "START" && value === BUTTON.ORDER) {
     return goStart(ctx, lang, restaurant, [text(t("closed", lang, { name: restaurant.name }))]);
