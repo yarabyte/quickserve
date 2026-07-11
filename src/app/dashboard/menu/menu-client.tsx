@@ -104,7 +104,10 @@ export function MenuClient({
       {!spreadsheetId ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Sheet non configuré</CardTitle>
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <FileSpreadsheet className="h-4 w-4 text-muted-foreground" aria-hidden />
+              Sheet non configuré
+            </CardTitle>
             <CardDescription>
               Renseignez <code>googleSpreadsheetId</code> dans Réglages
               {serviceAccountEmail
@@ -119,7 +122,8 @@ export function MenuClient({
       <div className="space-y-3">
         {items.length === 0 ? (
           <Card>
-            <CardContent className="py-8 text-center text-sm text-muted-foreground">
+            <CardContent className="flex flex-col items-center gap-2 py-10 text-center text-sm text-muted-foreground">
+              <UtensilsCrossed className="h-8 w-8 text-muted-foreground/50" aria-hidden />
               Cache vide — lancez une resynchronisation.
             </CardContent>
           </Card>
