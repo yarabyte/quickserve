@@ -3,14 +3,52 @@ import type { ConversationInput } from "@/types/conversation";
 
 import type { WatiInboundParsed } from "./schema";
 
+/**
+ * WATI often puts an opaque id in buttonReply.payload and the label in .text.
+ * Prefer our stable ids (intent_*, cat:*, item:*, …); otherwise use the visible title.
+ */
+function pickButtonValue(
+  reply:
+    | {
+        payload?: string;
+        id?: string;
+        text?: string;
+        title?: string;
+      }
+    | null
+    | undefined,
+): string | null {
+  if (!reply) return null;
+  const payload = reply.payload?.trim() || reply.id?.trim() || "";
+  const label = reply.text?.trim() || reply.title?.trim() || "";
+
+  if (payload) {
+    const looksStable =
+      /^(intent_|lang_|cart_|service_|order_|res_|menu_|nav_|cat:|item:|__)/i.test(
+        payload,
+      );
+    if (looksStable) return payload;
+    // Opaque WATI/WhatsApp id → use label if present
+    if (label) return label;
+    return payload;
+  }
+
+  return label || null;
+}
+
 export function extractNormalizedInput(
   message: WatiInboundParsed,
 ): ConversationInput | null {
   const senderName = message.senderName ?? null;
 
-  // Prefer row id; fall back to title (some WATI payloads omit id)
-  const listId =
-    message.listReply?.id?.trim() || message.listReply?.title?.trim();
+  // Prefer stable row id (cat:/item:); else title (WATI may send opaque ids)
+  const listRawId = message.listReply?.id?.trim() || "";
+  const listTitle = message.listReply?.title?.trim() || "";
+  const listId = listRawId
+    ? /^(cat:|item:)/i.test(listRawId)
+      ? listRawId
+      : listTitle || listRawId
+    : listTitle;
   if (listId) {
     return {
       kind: "list",
@@ -20,11 +58,7 @@ export function extractNormalizedInput(
     };
   }
 
-  const interactiveId =
-    message.interactiveButtonReply?.id?.trim() ||
-    message.interactiveButtonReply?.payload?.trim() ||
-    message.interactiveButtonReply?.text?.trim() ||
-    message.interactiveButtonReply?.title?.trim();
+  const interactiveId = pickButtonValue(message.interactiveButtonReply);
   if (interactiveId) {
     return {
       kind: "button",
@@ -37,11 +71,7 @@ export function extractNormalizedInput(
     };
   }
 
-  const buttonPayload =
-    message.buttonReply?.payload?.trim() ||
-    message.buttonReply?.id?.trim() ||
-    message.buttonReply?.text?.trim() ||
-    message.buttonReply?.title?.trim();
+  const buttonPayload = pickButtonValue(message.buttonReply);
   if (buttonPayload) {
     return {
       kind: "button",

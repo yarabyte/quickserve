@@ -226,6 +226,13 @@ export async function processClaimedWatiEvent(
     kind: engineInput.kind,
     value: engineInput.value.slice(0, 80),
     restaurantId: conversation.restaurantId,
+    rawType: claimed.message.type,
+    buttonPayload: claimed.message.buttonReply?.payload?.slice(0, 40),
+    buttonText: claimed.message.buttonReply?.text?.slice(0, 40),
+    interactiveId: claimed.message.interactiveButtonReply?.id?.slice(0, 40),
+    interactiveText:
+      claimed.message.interactiveButtonReply?.text?.slice(0, 40) ??
+      claimed.message.interactiveButtonReply?.title?.slice(0, 40),
   });
 
   const restaurantRow = await deps.prisma.restaurant.findUniqueOrThrow({
