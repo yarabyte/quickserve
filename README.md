@@ -133,8 +133,9 @@ Build pack : **Dockerfile** (fichier à la racine). Image standalone Next.js ; m
 | Variable | Notes |
 |----------|--------|
 | `DATABASE_URL` | URL **interne** Postgres Coolify |
-| `AUTH_SECRET` / `NEXTAUTH_SECRET` | `openssl rand -base64 32` |
-| `NEXTAUTH_URL` / `AUTH_URL` | `https://ton-domaine.com` |
+| `AUTH_SECRET` / `NEXTAUTH_SECRET` | **Obligatoire** — `openssl rand -base64 32` |
+| `AUTH_URL` / `NEXTAUTH_URL` | URL publique exacte, ex. `http://xxx.sslip.io` |
+| `AUTH_TRUST_HOST` | `true` (derrière le proxy Coolify) |
 | `WATI_API_ENDPOINT` | ex. `https://live-server-XXXX.wati.io` |
 | `WATI_ACCESS_TOKEN` | Bearer WATI |
 | `WATI_CHANNEL_NUMBER` | Numéro business |
