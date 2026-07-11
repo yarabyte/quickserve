@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 
 import { setReservationStatus } from "@/lib/dashboard/actions";
+import { PageHeader } from "@/components/dashboard/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,17 +26,20 @@ export function ReservationsClient({ reservations }: { reservations: Reservation
   const lang = "fr";
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h1 className="text-xl font-semibold">{t("dash.reservations.title", lang)}</h1>
-        <p className="text-sm text-muted-foreground">Confirmer ou annuler les demandes</p>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        title={t("dash.reservations.title", lang)}
+        description="Confirmer ou annuler les demandes clients"
+      />
 
       <div className="space-y-3">
         {reservations.length === 0 ? (
           <Card>
-            <CardContent className="py-8 text-center text-sm text-muted-foreground">
-              {t("dash.reservations.empty", lang)}
+            <CardContent className="py-14 text-center">
+              <p className="font-display text-lg">{t("dash.reservations.empty", lang)}</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Les demandes WhatsApp s&apos;afficheront ici.
+              </p>
             </CardContent>
           </Card>
         ) : (
@@ -43,9 +47,11 @@ export function ReservationsClient({ reservations }: { reservations: Reservation
             <Card key={r.id}>
               <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
                 <div>
-                  <CardTitle className="text-sm">{r.customerLabel}</CardTitle>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {new Date(r.dateTime).toLocaleString("fr-FR")} · {r.partySize} pers.
+                  <CardTitle className="text-base">{r.customerLabel}</CardTitle>
+                  <p className="mt-1.5 text-sm text-muted-foreground">
+                    {new Date(r.dateTime).toLocaleString("fr-FR")}
+                    {" · "}
+                    <span className="font-medium text-foreground">{r.partySize} pers.</span>
                   </p>
                 </div>
                 <Badge
@@ -61,7 +67,11 @@ export function ReservationsClient({ reservations }: { reservations: Reservation
                 </Badge>
               </CardHeader>
               <CardContent className="space-y-3">
-                {r.note ? <p className="text-sm text-muted-foreground">{r.note}</p> : null}
+                {r.note ? (
+                  <p className="rounded-xl bg-surface px-3 py-2 text-sm text-muted-foreground">
+                    {r.note}
+                  </p>
+                ) : null}
                 {r.status === "REQUESTED" ? (
                   <div className="flex gap-2">
                     <Button

@@ -14,11 +14,20 @@ export default function LoginPage() {
   const lang = "fr";
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>QuickServe</CardTitle>
-          <CardDescription>{t("dash.login.title", lang)}</CardDescription>
+    <div className="relative flex min-h-screen items-center justify-center px-4 py-10">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -left-20 top-10 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
+        <div className="absolute -right-16 bottom-10 h-64 w-64 rounded-full bg-accent/10 blur-3xl" />
+      </div>
+      <Card className="relative w-full max-w-md">
+        <CardHeader className="space-y-3 text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary font-display text-xl font-bold text-primary-foreground shadow-sm">
+            Q
+          </div>
+          <div>
+            <CardTitle className="font-display text-2xl">QuickServe</CardTitle>
+            <CardDescription className="mt-1">{t("dash.login.title", lang)}</CardDescription>
+          </div>
         </CardHeader>
         <CardContent>
           <form action={formAction} className="space-y-4">
@@ -45,7 +54,9 @@ export default function LoginPage() {
               />
             </div>
             {state?.error ? (
-              <p className="text-sm text-destructive">{state.error}</p>
+              <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800 ring-1 ring-red-200">
+                {state.error}
+              </p>
             ) : null}
             <Button type="submit" className="w-full" disabled={pending}>
               {pending ? "Connexion…" : t("dash.login.submit", lang)}

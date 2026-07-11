@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { updateRestaurantSettings } from "@/lib/dashboard/actions";
+import { PageHeader } from "@/components/dashboard/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -38,14 +39,15 @@ export function SettingsClient({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-semibold">Réglages</h1>
-        <p className="text-sm text-muted-foreground">Configuration du restaurant</p>
-      </div>
+      <PageHeader
+        title="Réglages"
+        description="Configuration du restaurant et deep-link WhatsApp"
+      />
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Restaurant</CardTitle>
+          <CardTitle>Restaurant</CardTitle>
+          <CardDescription>Informations visibles côté bot et dashboard</CardDescription>
         </CardHeader>
         <CardContent>
           <form
@@ -154,15 +156,15 @@ export function SettingsClient({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm">Deep-link client WhatsApp</CardTitle>
+          <CardTitle>Deep-link client WhatsApp</CardTitle>
           <CardDescription>
             Les clients ouvrent ce lien pour lier la conversation au restaurant (
-            <code>RESTO-{restaurant.slug}</code>).
+            <code className="rounded bg-muted px-1 text-xs">RESTO-{restaurant.slug}</code>).
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-wrap items-center gap-2">
-            <code className="max-w-full break-all rounded-md bg-muted px-2 py-1 text-xs">
+            <code className="max-w-full flex-1 break-all rounded-xl bg-surface px-3 py-2 font-mono text-xs ring-1 ring-border">
               {deepLink}
             </code>
             <Button
@@ -183,7 +185,7 @@ export function SettingsClient({
             <img
               src={qrDataUrl}
               alt={`QR code ${restaurant.slug}`}
-              className="h-48 w-48 rounded-md border border-border bg-white p-2"
+              className="h-48 w-48 rounded-2xl border border-border bg-white p-3 shadow-sm"
             />
           ) : null}
         </CardContent>

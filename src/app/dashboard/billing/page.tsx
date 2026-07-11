@@ -2,11 +2,13 @@ import Link from "next/link";
 
 import { auth } from "@/auth";
 import { withTenant } from "@/lib/auth/tenant";
+import { PageHeader } from "@/components/dashboard/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { prisma } from "@/lib/prisma";
 import { evaluateSubscription } from "@/lib/tenant/subscription";
 import { t } from "@/i18n";
+import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +26,7 @@ const PLANS = [
     price: "15 000 FCFA",
     period: "/ mois",
     features: ["Tout l'essai", "Support prioritaire", "Notifications staff illimitées"],
+    highlighted: true,
   },
   {
     id: "pro",
@@ -48,34 +51,51 @@ export default async function BillingPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-semibold">{t("dash.billing.title", "fr")}</h1>
-        <p className="text-sm text-muted-foreground">
-          Statut actuel :{" "}
-          <strong>{restaurant?.subscriptionStatus ?? "—"}</strong>
-          {restaurant?.trialEndsAt
-            ? ` · essai jusqu'au ${restaurant.trialEndsAt.toLocaleDateString("fr-FR")}`
-            : ""}
+      <PageHeader
+        title={t("dash.billing.title", "fr")}
+        description={
+          <>
+            Statut actuel :{" "}
+            <strong className="text-foreground">
+              {restaurant?.subscriptionStatus ?? "—"}
+            </strong>
+            {restaurant?.trialEndsAt
+              ? ` · essai jusqu'au ${restaurant.trialEndsAt.toLocaleDateString("fr-FR")}`
+              : ""}
+          </>
+        }
+      />
+
+      {gate && !gate.active ? (
+        <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-900 ring-1 ring-red-200">
+          {gate.messageFr}
         </p>
-        {gate && !gate.active ? (
-          <p className="mt-2 text-sm text-destructive">{gate.messageFr}</p>
-        ) : null}
-      </div>
+      ) : null}
 
       <div className="grid gap-4 md:grid-cols-3">
         {PLANS.map((plan) => (
-          <Card key={plan.id}>
+          <Card
+            key={plan.id}
+            className={cn(
+              plan.highlighted && "ring-2 ring-primary/30",
+            )}
+          >
             <CardHeader>
-              <CardTitle className="text-base">{plan.name}</CardTitle>
+              <CardTitle className="font-display text-xl">{plan.name}</CardTitle>
               <CardDescription>
-                <span className="text-lg font-semibold text-foreground">{plan.price}</span>{" "}
-                {plan.period}
+                <span className="font-display text-2xl font-semibold text-foreground">
+                  {plan.price}
+                </span>{" "}
+                <span className="text-muted-foreground">{plan.period}</span>
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <ul className="space-y-1 text-sm text-muted-foreground">
+              <ul className="space-y-2 text-sm text-muted-foreground">
                 {plan.features.map((f) => (
-                  <li key={f}>• {f}</li>
+                  <li key={f} className="flex gap-2">
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                    {f}
+                  </li>
                 ))}
               </ul>
               {plan.id === "trial" ? (
@@ -95,7 +115,7 @@ export default async function BillingPage() {
       <p className="text-xs text-muted-foreground">
         Le paiement en ligne arrive en v2. Pour réactiver un compte suspendu en attendant,
         contactez le support QuickServe.{" "}
-        <Link href="/onboarding/setup" className="underline">
+        <Link href="/onboarding/setup" className="font-medium text-primary underline-offset-2 hover:underline">
           Revoir le Sheet
         </Link>
       </p>

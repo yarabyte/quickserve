@@ -4,10 +4,12 @@ import { useRouter } from "next/navigation";
 import { useEffect, useTransition } from "react";
 
 import { advanceOrderStatus, markOrderPaid } from "@/lib/dashboard/actions";
+import { PageHeader } from "@/components/dashboard/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { t } from "@/i18n";
+import { cn } from "@/lib/utils";
 
 export type OrderRow = {
   id: string;
@@ -23,15 +25,25 @@ export type OrderRow = {
 };
 
 const nextLabel: Record<string, string> = {
-  CONFIRMED: "→ Préparation",
-  PREPARING: "→ Prêt",
-  READY: "→ Livré",
+  CONFIRMED: "En préparation",
+  PREPARING: "Marquer prêt",
+  READY: "Marquer livré",
+};
+
+const statusLabel: Record<string, string> = {
+  ALL: "Toutes",
+  CONFIRMED: "Confirmées",
+  PREPARING: "Préparation",
+  READY: "Prêtes",
+  DELIVERED: "Livrées",
+  CANCELLED: "Annulées",
 };
 
 function statusVariant(status: string) {
   if (status === "DELIVERED") return "success" as const;
   if (status === "CANCELLED") return "danger" as const;
   if (status === "READY") return "warning" as const;
+  if (status === "PREPARING") return "default" as const;
   return "secondary" as const;
 }
 
@@ -44,98 +56,123 @@ export function OrdersClient({
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const lang = "fr";
 
   useEffect(() => {
     const id = setInterval(() => router.refresh(), 5000);
     return () => clearInterval(id);
   }, [router]);
 
-  const lang = "fr";
-
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold">{t("dash.orders.title", lang)}</h1>
-          <p className="text-sm text-muted-foreground">{t("dash.orders.poll", lang)}</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {["ALL", "CONFIRMED", "PREPARING", "READY", "DELIVERED", "CANCELLED"].map((s) => (
-            <Button
-              key={s}
-              size="sm"
-              variant={statusFilter === s ? "default" : "outline"}
-              onClick={() =>
-                router.push(s === "ALL" ? "/dashboard/orders" : `/dashboard/orders?status=${s}`)
-              }
-            >
-              {s === "ALL" ? t("dash.orders.all", lang) : s}
-            </Button>
-          ))}
-        </div>
+    <div className="space-y-6">
+      <PageHeader
+        title={t("dash.orders.title", lang)}
+        description={t("dash.orders.poll", lang)}
+      />
+
+      <div className="flex flex-wrap gap-2">
+        {["ALL", "CONFIRMED", "PREPARING", "READY", "DELIVERED", "CANCELLED"].map((s) => (
+          <Button
+            key={s}
+            size="sm"
+            variant={statusFilter === s ? "default" : "outline"}
+            onClick={() =>
+              router.push(s === "ALL" ? "/dashboard/orders" : `/dashboard/orders?status=${s}`)
+            }
+          >
+            {statusLabel[s] ?? s}
+          </Button>
+        ))}
       </div>
 
       <div className="space-y-3">
         {orders.length === 0 ? (
           <Card>
-            <CardContent className="py-8 text-center text-sm text-muted-foreground">
-              {t("dash.orders.empty", lang)}
+            <CardContent className="py-14 text-center">
+              <p className="font-display text-lg text-foreground">Aucune commande</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Les commandes WhatsApp apparaîtront ici en direct.
+              </p>
             </CardContent>
           </Card>
         ) : (
           orders.map((order) => (
-            <Card key={order.id}>
+            <Card key={order.id} className="overflow-hidden">
+              <div
+                className={cn(
+                  "h-1 w-full",
+                  order.status === "READY" && "bg-amber-400",
+                  order.status === "PREPARING" && "bg-primary",
+                  order.status === "DELIVERED" && "bg-emerald-500",
+                  order.status === "CANCELLED" && "bg-red-400",
+                  order.status === "CONFIRMED" && "bg-slate-300",
+                )}
+              />
               <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
                 <div>
-                  <CardTitle className="font-mono text-sm">{order.orderNumber}</CardTitle>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {order.customerLabel} · {order.type} ·{" "}
+                  <CardTitle className="font-mono text-sm tracking-wide text-primary">
+                    {order.orderNumber}
+                  </CardTitle>
+                  <p className="mt-1.5 text-sm text-muted-foreground">
+                    <span className="font-medium text-foreground">{order.customerLabel}</span>
+                    {" · "}
+                    {order.type === "DELIVERY" ? "Livraison" : "À emporter"}
+                    {" · "}
                     {new Date(order.createdAt).toLocaleString("fr-FR")}
                   </p>
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap justify-end gap-2">
                   <Badge variant={statusVariant(order.status)}>{order.status}</Badge>
                   <Badge variant={order.paymentStatus === "PAID" ? "success" : "warning"}>
-                    {order.paymentStatus}
+                    {order.paymentStatus === "PAID" ? "Payé" : "Impayé"}
                   </Badge>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <p className="text-sm">{order.itemsSummary}</p>
-                <p className="text-sm font-medium">{order.totalXAF.toLocaleString("fr-FR")} FCFA</p>
-                {order.deliveryAddress ? (
-                  <p className="text-sm text-muted-foreground">📍 {order.deliveryAddress}</p>
-                ) : null}
-                <div className="flex flex-wrap gap-2">
-                  {nextLabel[order.status] ? (
-                    <Button
-                      size="sm"
-                      disabled={pending}
-                      onClick={() =>
-                        startTransition(async () => {
-                          await advanceOrderStatus(order.id);
-                          router.refresh();
-                        })
-                      }
-                    >
-                      {nextLabel[order.status]}
-                    </Button>
-                  ) : null}
-                  {order.paymentStatus !== "PAID" ? (
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      disabled={pending}
-                      onClick={() =>
-                        startTransition(async () => {
-                          await markOrderPaid(order.id);
-                          router.refresh();
-                        })
-                      }
-                    >
-                      {t("dash.orders.mark_paid", lang)}
-                    </Button>
-                  ) : null}
+              <CardContent className="space-y-4">
+                <p className="rounded-xl bg-surface px-3 py-2 text-sm leading-relaxed">
+                  {order.itemsSummary}
+                </p>
+                <div className="flex flex-wrap items-end justify-between gap-3">
+                  <div>
+                    <p className="font-display text-2xl font-semibold tracking-tight">
+                      {order.totalXAF.toLocaleString("fr-FR")}{" "}
+                      <span className="text-base font-medium text-muted-foreground">FCFA</span>
+                    </p>
+                    {order.deliveryAddress ? (
+                      <p className="mt-1 text-sm text-muted-foreground">{order.deliveryAddress}</p>
+                    ) : null}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {nextLabel[order.status] ? (
+                      <Button
+                        size="sm"
+                        disabled={pending}
+                        onClick={() =>
+                          startTransition(async () => {
+                            await advanceOrderStatus(order.id);
+                            router.refresh();
+                          })
+                        }
+                      >
+                        {nextLabel[order.status]}
+                      </Button>
+                    ) : null}
+                    {order.paymentStatus !== "PAID" ? (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        disabled={pending}
+                        onClick={() =>
+                          startTransition(async () => {
+                            await markOrderPaid(order.id);
+                            router.refresh();
+                          })
+                        }
+                      >
+                        {t("dash.orders.mark_paid", lang)}
+                      </Button>
+                    ) : null}
+                  </div>
                 </div>
               </CardContent>
             </Card>
