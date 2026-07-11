@@ -119,9 +119,9 @@ export function MenuClient({
         </Card>
       ) : null}
 
-      <div className="space-y-3">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {items.length === 0 ? (
-          <Card>
+          <Card className="sm:col-span-2 xl:col-span-3">
             <CardContent className="flex flex-col items-center gap-2 py-10 text-center text-sm text-muted-foreground">
               <UtensilsCrossed className="h-8 w-8 text-muted-foreground/50" aria-hidden />
               Cache vide — lancez une resynchronisation.
@@ -131,7 +131,7 @@ export function MenuClient({
           items.map((item) => (
             <Card key={item.id}>
               <CardContent className="flex items-start justify-between gap-3 py-5">
-                <div>
+                <div className="min-w-0">
                   <p className="text-[11px] font-semibold uppercase tracking-wider text-primary/70">
                     {item.categoryName}
                   </p>
@@ -139,13 +139,15 @@ export function MenuClient({
                     {item.name}
                   </p>
                   {item.description ? (
-                    <p className="mt-0.5 text-sm text-muted-foreground">{item.description}</p>
+                    <p className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">
+                      {item.description}
+                    </p>
                   ) : null}
                   <p className="mt-2 font-mono text-[11px] text-muted-foreground">
                     {item.externalRef}
                   </p>
                 </div>
-                <div className="text-right">
+                <div className="shrink-0 text-right">
                   <p className="font-display text-xl font-semibold">
                     {item.priceXAF.toLocaleString("fr-FR")}
                     <span className="ml-1 text-sm font-medium text-muted-foreground">FCFA</span>

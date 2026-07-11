@@ -125,9 +125,9 @@ export function OrdersClient({
         )}
       </div>
 
-      <div className="space-y-3">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {orders.length === 0 ? (
-          <Card>
+          <Card className="sm:col-span-2 xl:col-span-3">
             <CardContent className="py-14 text-center">
               <ShoppingBag className="mx-auto h-10 w-10 text-muted-foreground/50" aria-hidden />
               <p className="mt-3 font-display text-lg text-foreground">Aucune commande</p>
@@ -140,7 +140,7 @@ export function OrdersClient({
           orders.map((order) => {
             const NextIcon = nextIcon[order.status as keyof typeof nextIcon];
             return (
-              <Card key={order.id} className="overflow-hidden">
+              <Card key={order.id} className="flex flex-col overflow-hidden">
                 <div
                   className={cn(
                     "h-1 w-full",
@@ -152,12 +152,14 @@ export function OrdersClient({
                   )}
                 />
                 <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
-                  <div>
+                  <div className="min-w-0">
                     <CardTitle className="font-mono text-sm tracking-wide text-primary">
                       {order.orderNumber}
                     </CardTitle>
-                    <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
-                      <span className="font-medium text-foreground">{order.customerLabel}</span>
+                    <p className="mt-1.5 truncate text-sm font-medium text-foreground">
+                      {order.customerLabel}
+                    </p>
+                    <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
                       <span className="inline-flex items-center gap-1">
                         {order.type === "DELIVERY" ? (
                           <Bike className="h-3.5 w-3.5" aria-hidden />
@@ -169,18 +171,18 @@ export function OrdersClient({
                       <span>{new Date(order.createdAt).toLocaleString("fr-FR")}</span>
                     </p>
                   </div>
-                  <div className="flex flex-wrap justify-end gap-2">
+                  <div className="flex shrink-0 flex-col items-end gap-1.5">
                     <Badge variant={statusVariant(order.status)}>{order.status}</Badge>
                     <Badge variant={order.paymentStatus === "PAID" ? "success" : "warning"}>
                       {order.paymentStatus === "PAID" ? "Payé" : "Impayé"}
                     </Badge>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="rounded-xl bg-surface px-3 py-2 text-sm leading-relaxed">
+                <CardContent className="flex flex-1 flex-col gap-4">
+                  <p className="line-clamp-3 rounded-xl bg-surface px-3 py-2 text-sm leading-relaxed">
                     {order.itemsSummary}
                   </p>
-                  <div className="flex flex-wrap items-end justify-between gap-3">
+                  <div className="mt-auto space-y-3">
                     <div>
                       <p className="font-display text-2xl font-semibold tracking-tight">
                         {order.totalXAF.toLocaleString("fr-FR")}{" "}
@@ -189,7 +191,7 @@ export function OrdersClient({
                       {order.deliveryAddress ? (
                         <p className="mt-1 inline-flex items-start gap-1.5 text-sm text-muted-foreground">
                           <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
-                          {order.deliveryAddress}
+                          <span className="line-clamp-2">{order.deliveryAddress}</span>
                         </p>
                       ) : null}
                     </div>

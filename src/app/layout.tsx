@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Fraunces, Geist_Mono, Outfit } from "next/font/google";
+
+import { CookieConsent } from "@/components/cookie-consent";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -32,7 +34,10 @@ export default function RootLayout({
       lang="fr"
       className={`${outfit.variable} ${fraunces.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        {children}
+        <CookieConsent />
+      </body>
     </html>
   );
 }

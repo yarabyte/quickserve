@@ -34,9 +34,9 @@ export function ReservationsClient({ reservations }: { reservations: Reservation
         description="Confirmer ou annuler les demandes clients"
       />
 
-      <div className="space-y-3">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {reservations.length === 0 ? (
-          <Card>
+          <Card className="sm:col-span-2 xl:col-span-3">
             <CardContent className="py-14 text-center">
               <CalendarDays className="mx-auto h-10 w-10 text-muted-foreground/50" aria-hidden />
               <p className="mt-3 font-display text-lg">{t("dash.reservations.empty", lang)}</p>
@@ -47,10 +47,10 @@ export function ReservationsClient({ reservations }: { reservations: Reservation
           </Card>
         ) : (
           reservations.map((r) => (
-            <Card key={r.id}>
+            <Card key={r.id} className="flex flex-col">
               <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
-                <div>
-                  <CardTitle className="text-base">{r.customerLabel}</CardTitle>
+                <div className="min-w-0">
+                  <CardTitle className="truncate text-base">{r.customerLabel}</CardTitle>
                   <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
                     <span className="inline-flex items-center gap-1.5">
                       <CalendarDays className="h-3.5 w-3.5" aria-hidden />
@@ -74,14 +74,14 @@ export function ReservationsClient({ reservations }: { reservations: Reservation
                   {r.status}
                 </Badge>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="mt-auto space-y-3">
                 {r.note ? (
-                  <p className="rounded-xl bg-surface px-3 py-2 text-sm text-muted-foreground">
+                  <p className="line-clamp-3 rounded-xl bg-surface px-3 py-2 text-sm text-muted-foreground">
                     {r.note}
                   </p>
                 ) : null}
                 {r.status === "REQUESTED" ? (
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <Button
                       size="sm"
                       disabled={pending}

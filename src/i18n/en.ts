@@ -95,4 +95,41 @@ export const en: Record<MessageKey, string> = {
   "dash.billing.title": "Billing",
   "dash.login.title": "Restaurant dashboard login",
   "dash.login.submit": "Sign in",
+
+  "landing.login": "Sign in",
+  "landing.headline": "Orders and reservations, right on WhatsApp",
+  "landing.sub":
+    "Win more orders where your customers already chat. Menu, cart, and bookings on WhatsApp — no app to download, live in minutes.",
+  "landing.cta_primary": "Create my restaurant",
+  "landing.cta_secondary": "Open dashboard",
+  "landing.chat.online": "online",
+  "landing.chat.welcome": "Welcome to Chez Douala. What would you like to do?",
+  "landing.chat.order": "Order",
+  "landing.chat.categories": "Pick a category:",
+  "landing.chat.cat1": "Daily specials",
+  "landing.chat.cat2": "Grill",
+  "landing.chat.cat3": "Drinks",
+  "landing.steps.title": "Live in three steps",
+  "landing.steps.intro":
+    "From signup to your first guest — no custom WhatsApp build.",
+  "landing.step1.title": "Menu in Google Sheets",
+  "landing.step1.body":
+    "Add dishes and prices in your spreadsheet. QuickServe syncs everything for the bot.",
+  "landing.step2.title": "Your restaurant WhatsApp link",
+  "landing.step2.body":
+    "Share your wa.me link. The first message automatically ties the guest to your restaurant.",
+  "landing.step3.title": "Run it from the dashboard",
+  "landing.step3.body":
+    "Orders, reservations, and status updates — guests get notified on WhatsApp at every step.",
+  "landing.cta.title": "Ready to serve on WhatsApp?",
+  "landing.cta.body":
+    "Create your restaurant, connect your Sheet, and take your first orders in minutes.",
+  "landing.cta.button": "Start for free",
+  "landing.footer.tagline": "Ordering & reservations · WhatsApp · WATI",
+
+  "cookies.title": "We use cookies",
+  "cookies.body":
+    "QuickServe uses essential cookies for sign-in and dashboard reliability, plus optional analytics cookies to improve the product. You can accept or decline.",
+  "cookies.accept": "Accept",
+  "cookies.reject": "Decline",
 };

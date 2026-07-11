@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
 import { logoutAction } from "@/lib/dashboard/auth-actions";
+import { BrandLogo } from "@/components/brand-logo";
 import { DashboardNav } from "@/components/dashboard/dashboard-nav";
 import type { NavIconKey } from "@/components/dashboard/nav-icons";
 import { SubscriptionBanner } from "@/components/dashboard/subscription-banner";
@@ -44,13 +45,8 @@ export default async function DashboardLayout({
       <header className="sticky top-0 z-40 border-b border-border/80 bg-card/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
           <div className="flex min-w-0 items-center gap-6">
-            <Link href="/dashboard" className="flex items-center gap-2.5">
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary text-sm font-bold text-primary-foreground shadow-sm">
-                Q
-              </span>
-              <span className="font-display text-lg font-semibold tracking-tight">
-                QuickServe
-              </span>
+            <Link href="/dashboard" className="transition hover:opacity-90">
+              <BrandLogo size="md" />
             </Link>
             <div className="hidden lg:block">
               <DashboardNav items={nav} />

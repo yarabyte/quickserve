@@ -4,8 +4,9 @@ import { useActionState } from "react";
 import { Lock, LogIn, Mail } from "lucide-react";
 
 import { authenticate } from "@/lib/dashboard/auth-actions";
+import { BrandLogo } from "@/components/brand-logo";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { t } from "@/i18n";
@@ -21,14 +22,11 @@ export default function LoginPage() {
         <div className="absolute -right-16 bottom-10 h-64 w-64 rounded-full bg-accent/10 blur-3xl" />
       </div>
       <Card className="relative w-full max-w-md">
-        <CardHeader className="space-y-3 text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary font-display text-xl font-bold text-primary-foreground shadow-sm">
-            Q
+        <CardHeader className="space-y-4 text-center">
+          <div className="flex justify-center">
+            <BrandLogo size="lg" />
           </div>
-          <div>
-            <CardTitle className="font-display text-2xl">QuickServe</CardTitle>
-            <CardDescription className="mt-1">{t("dash.login.title", lang)}</CardDescription>
-          </div>
+          <CardDescription>{t("dash.login.title", lang)}</CardDescription>
         </CardHeader>
         <CardContent>
           <form action={formAction} className="space-y-4">

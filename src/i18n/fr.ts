@@ -93,6 +93,45 @@ export const fr = {
   "dash.billing.title": "Abonnement",
   "dash.login.title": "Connexion au dashboard restaurant",
   "dash.login.submit": "Se connecter",
+
+  // —— Landing ——
+  "landing.login": "Se connecter",
+  "landing.headline": "Commandes et réservations, directement sur WhatsApp",
+  "landing.sub":
+    "Gagnez plus de commandes là où vos clients écrivent déjà. Menu, panier et réservations sur WhatsApp — sans app à télécharger, opérationnel en quelques minutes.",
+  "landing.cta_primary": "Créer mon restaurant",
+  "landing.cta_secondary": "Accéder au dashboard",
+  "landing.chat.online": "en ligne",
+  "landing.chat.welcome": "Bienvenue chez Chez Douala. Que souhaitez-vous faire ?",
+  "landing.chat.order": "Commander",
+  "landing.chat.categories": "Choisissez une catégorie :",
+  "landing.chat.cat1": "Plats du jour",
+  "landing.chat.cat2": "Grillades",
+  "landing.chat.cat3": "Boissons",
+  "landing.steps.title": "Trois étapes pour démarrer",
+  "landing.steps.intro":
+    "De l’inscription au premier client — sans développement WhatsApp custom.",
+  "landing.step1.title": "Menu dans Google Sheets",
+  "landing.step1.body":
+    "Ajoutez plats et prix dans votre tableur. QuickServe synchronise tout pour le bot.",
+  "landing.step2.title": "Lien WhatsApp du resto",
+  "landing.step2.body":
+    "Partagez votre lien wa.me. Le premier message rattache automatiquement le client à votre restaurant.",
+  "landing.step3.title": "Pilotez depuis le dashboard",
+  "landing.step3.body":
+    "Commandes, réservations et statuts — vos clients sont notifiés sur WhatsApp à chaque étape.",
+  "landing.cta.title": "Prêt à servir sur WhatsApp ?",
+  "landing.cta.body":
+    "Créez votre restaurant, connectez votre Sheet, et lancez vos premières commandes en quelques minutes.",
+  "landing.cta.button": "Commencer gratuitement",
+  "landing.footer.tagline": "Commande & réservation · WhatsApp · WATI",
+
+  // —— Cookies ——
+  "cookies.title": "Nous utilisons des cookies",
+  "cookies.body":
+    "QuickServe utilise des cookies essentiels pour la connexion et le bon fonctionnement du dashboard, ainsi que des cookies analytiques optionnels pour améliorer le produit. Vous pouvez accepter ou refuser.",
+  "cookies.accept": "Accepter",
+  "cookies.reject": "Refuser",
 } as const;
 
 export type MessageKey = keyof typeof fr;
