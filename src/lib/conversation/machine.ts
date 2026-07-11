@@ -51,20 +51,22 @@ export const BUTTON = {
 
 /** Map WATI button titles / aliases → stable button ids */
 export function normalizeButtonValue(value: string): string {
-  const v = value.trim().toLowerCase();
+  const v = value
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "");
   const aliases: Record<string, string> = {
     [BUTTON.ORDER]: BUTTON.ORDER,
     commander: BUTTON.ORDER,
     order: BUTTON.ORDER,
     [BUTTON.RESERVE]: BUTTON.RESERVE,
-    réserver: BUTTON.RESERVE,
     reserver: BUTTON.RESERVE,
     reserve: BUTTON.RESERVE,
     [BUTTON.LANG]: BUTTON.LANG,
     langue: BUTTON.LANG,
     language: BUTTON.LANG,
     [BUTTON.LANG_FR]: BUTTON.LANG_FR,
-    français: BUTTON.LANG_FR,
     francais: BUTTON.LANG_FR,
     [BUTTON.LANG_EN]: BUTTON.LANG_EN,
     english: BUTTON.LANG_EN,
@@ -81,7 +83,6 @@ export function normalizeButtonValue(value: string): string {
     livraison: BUTTON.SERVICE_DELIVERY,
     delivery: BUTTON.SERVICE_DELIVERY,
     [BUTTON.SERVICE_PICKUP]: BUTTON.SERVICE_PICKUP,
-    "à emporter": BUTTON.SERVICE_PICKUP,
     "a emporter": BUTTON.SERVICE_PICKUP,
     pickup: BUTTON.SERVICE_PICKUP,
     [BUTTON.ORDER_CONFIRM]: BUTTON.ORDER_CONFIRM,

@@ -219,6 +219,15 @@ export async function processClaimedWatiEvent(
     ? { kind: "text", value: "__tenant_linked__", senderName: input.senderName }
     : input;
 
+  logger.info("wati_engine_input", {
+    waId,
+    eventId,
+    state: conversation.state,
+    kind: engineInput.kind,
+    value: engineInput.value.slice(0, 80),
+    restaurantId: conversation.restaurantId,
+  });
+
   const restaurantRow = await deps.prisma.restaurant.findUniqueOrThrow({
     where: { id: conversation.restaurantId },
   });
