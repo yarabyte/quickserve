@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { ExternalLink, RefreshCw, UtensilsCrossed } from "lucide-react";
+import { ExternalLink, FileSpreadsheet, RefreshCw, UtensilsCrossed } from "lucide-react";
 
 import { resyncMenuAction } from "@/lib/dashboard/actions";
 import { PageHeader } from "@/components/dashboard/page-header";

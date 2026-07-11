@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AlertTriangle, Sparkles } from "lucide-react";
 
 import { auth } from "@/auth";
 import { evaluateSubscription } from "@/lib/tenant/subscription";
@@ -27,11 +28,14 @@ export async function SubscriptionBanner() {
       Math.ceil((restaurant.trialEndsAt.getTime() - Date.now()) / (24 * 60 * 60 * 1000)),
     );
     return (
-      <div className="border-b border-amber-200/80 bg-amber-50/90 px-4 py-2.5 text-sm text-amber-950 backdrop-blur">
-        Essai gratuit — <strong>{days} j</strong> restant{days > 1 ? "s" : ""}.{" "}
-        <Link href="/dashboard/billing" className="font-semibold underline underline-offset-2">
-          Voir les plans
-        </Link>
+      <div className="flex items-center gap-2 border-b border-amber-200/80 bg-amber-50/90 px-4 py-2.5 text-sm text-amber-950 backdrop-blur">
+        <Sparkles className="h-4 w-4 shrink-0" aria-hidden />
+        <span>
+          Essai gratuit — <strong>{days} j</strong> restant{days > 1 ? "s" : ""}.{" "}
+          <Link href="/dashboard/billing" className="font-semibold underline underline-offset-2">
+            Voir les plans
+          </Link>
+        </span>
       </div>
     );
   }
@@ -45,11 +49,14 @@ export async function SubscriptionBanner() {
     const href = gate.reason === "MISSING_SHEET" ? "/onboarding/setup" : "/dashboard/billing";
 
     return (
-      <div className="border-b border-red-200/80 bg-red-50/90 px-4 py-2.5 text-sm text-red-950 backdrop-blur">
-        {title}.{" "}
-        <Link href={href} className="font-semibold underline underline-offset-2">
-          {gate.reason === "MISSING_SHEET" ? "Terminer l'onboarding" : "Upgrade"}
-        </Link>
+      <div className="flex items-center gap-2 border-b border-red-200/80 bg-red-50/90 px-4 py-2.5 text-sm text-red-950 backdrop-blur">
+        <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden />
+        <span>
+          {title}.{" "}
+          <Link href={href} className="font-semibold underline underline-offset-2">
+            {gate.reason === "MISSING_SHEET" ? "Terminer l'onboarding" : "Upgrade"}
+          </Link>
+        </span>
       </div>
     );
   }
