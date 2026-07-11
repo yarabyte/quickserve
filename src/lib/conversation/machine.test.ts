@@ -104,7 +104,7 @@ describe("handleInput — parcours commande livraison", () => {
     }
     current = s.next;
 
-    // Catégorie Plats → items
+    // Catégorie Plats → items (id)
     s = step(current, categoryRowId("Plats"), "list");
     expect(s.outcome.nextState).toBe("BROWSING_MENU");
     expect(s.outcome.context.browse).toMatchObject({
@@ -112,6 +112,15 @@ describe("handleInput — parcours commande livraison", () => {
       category: "Plats",
     });
     current = s.next;
+
+    // Fallback titre seul (payload WATI sans id)
+    s = step(
+      conv({ state: "BROWSING_MENU", context: { items: [], browse: { mode: "categories", page: 1 } } }),
+      "Plats",
+      "list",
+    );
+    expect(s.outcome.context.browse).toMatchObject({ mode: "items", category: "Plats" });
+    current = step(current, categoryRowId("Plats"), "list").next;
 
     // Sélection Poulet DG → panier
     s = step(current, itemRowId("sheet-row-1"), "list");

@@ -8,7 +8,9 @@ export function extractNormalizedInput(
 ): ConversationInput | null {
   const senderName = message.senderName ?? null;
 
-  const listId = message.listReply?.id?.trim();
+  // Prefer row id; fall back to title (some WATI payloads omit id)
+  const listId =
+    message.listReply?.id?.trim() || message.listReply?.title?.trim();
   if (listId) {
     return {
       kind: "list",

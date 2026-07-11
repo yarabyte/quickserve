@@ -399,6 +399,33 @@ function handleChoosingLanguage(
   return switched;
 }
 
+/**
+ * Resolve category from list row id (`cat:…`) or plain title ("Plats").
+ * WATI sometimes delivers only the row title without the custom id.
+ */
+function resolveCategorySelection(value: string, menu: MenuItemView[]): string | null {
+  const fromId = parseCategoryRowId(value);
+  if (fromId) return fromId;
+  const normalized = value.trim().toLowerCase();
+  if (!normalized) return null;
+  return listCategories(menu).find((c) => c.toLowerCase() === normalized) ?? null;
+}
+
+function resolveItemSelection(
+  value: string,
+  menu: MenuItemView[],
+  category?: string,
+): MenuItemView | null {
+  const fromId = parseItemRowId(value);
+  if (fromId) {
+    return menu.find((m) => m.externalRef === fromId) ?? null;
+  }
+  const normalized = value.trim().toLowerCase();
+  if (!normalized) return null;
+  const pool = category ? itemsInCategory(menu, category) : menu;
+  return pool.find((m) => m.name.toLowerCase() === normalized) ?? null;
+}
+
 function handleBrowsingMenu(
   ctx: ConversationContext,
   lang: ConversationLanguage,
@@ -406,7 +433,7 @@ function handleBrowsingMenu(
   menu: MenuItemView[],
   value: string,
 ): MachineResult {
-  const categoryFromList = parseCategoryRowId(value);
+  const categoryFromList = resolveCategorySelection(value, menu);
   if (categoryFromList) {
     const built = buildItemsList(lang, menu, categoryFromList, 1);
     if (!built) {
@@ -426,17 +453,13 @@ function handleBrowsingMenu(
     );
   }
 
-  const itemRef = parseItemRowId(value);
-  if (itemRef) {
-    const menuItem = menu.find((m) => m.externalRef === itemRef);
-    if (!menuItem) {
-      return result("BROWSING_MENU", ctx, ctx.browse ? { browse: ctx.browse } : {}, lang, [
-        text(t("menu_empty", lang)),
-      ]);
-    }
-    const items = addToCart(ctx.items, itemRef, 1);
+  const browseCategory =
+    ctx.browse?.mode === "items" ? ctx.browse.category : undefined;
+  const menuItem = resolveItemSelection(value, menu, browseCategory);
+  if (menuItem) {
+    const items = addToCart(ctx.items, menuItem.externalRef, 1);
     const nextCtx = mergeContext(ctx, { items });
-    const qty = items.find((i) => i.menuItemRef === itemRef)?.qty ?? 1;
+    const qty = items.find((i) => i.menuItemRef === menuItem.externalRef)?.qty ?? 1;
     return result("CART", ctx, { items, browse: undefined }, lang, [
       text(t("item_added", lang, { name: menuItem.name, qty })),
       ...cartEffects(lang, nextCtx, menu),
