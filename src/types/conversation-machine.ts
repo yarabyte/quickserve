@@ -5,6 +5,7 @@ export type ConversationState =
   | "START"
   | "CHOOSING_LANGUAGE"
   | "BROWSING_MENU"
+  | "COLLECTING_QTY"
   | "CART"
   | "CHOOSING_SERVICE"
   | "COLLECTING_ADDRESS"
@@ -27,6 +28,8 @@ export type ConversationContext = {
   items: CartItem[];
   serviceType?: OrderServiceType;
   deliveryAddress?: string;
+  /** Item selected, waiting for quantity (1–3) */
+  pendingMenuItemRef?: string;
   browse?: {
     mode: BrowseMode;
     category?: string;

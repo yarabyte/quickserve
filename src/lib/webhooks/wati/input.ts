@@ -24,7 +24,7 @@ function pickButtonValue(
 
   if (payload) {
     const looksStable =
-      /^(intent_|lang_|cart_|service_|order_|res_|menu_|nav_|cat:|item:|__)/i.test(
+      /^(intent_|lang_|cart_|service_|order_|res_|menu_|nav_|qty_|cat:|item:|__)/i.test(
         payload,
       );
     if (looksStable) return payload;

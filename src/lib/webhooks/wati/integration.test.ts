@@ -155,6 +155,11 @@ describe.runIf(hasDb)("webhook → machine → effects (integration)", () => {
     result = await run(listEvent("item", itemRowId("it-poulet")));
     expect(result.status).toBe("processed");
     conv = await prisma.conversation.findUniqueOrThrow({ where: { waId } });
+    expect(conv.state).toBe("COLLECTING_QTY");
+
+    result = await run(buttonEvent("qty", BUTTON.QTY_2));
+    expect(result.status).toBe("processed");
+    conv = await prisma.conversation.findUniqueOrThrow({ where: { waId } });
     expect(conv.state).toBe("CART");
 
     result = await run(buttonEvent("checkout", BUTTON.CART_CHECKOUT));
@@ -172,7 +177,7 @@ describe.runIf(hasDb)("webhook → machine → effects (integration)", () => {
     expect(order).toBeTruthy();
     expect(order?.status).toBe("CONFIRMED");
     expect(order?.type).toBe("DELIVERY");
-    expect(order?.totalXAF).toBe(3500);
+    expect(order?.totalXAF).toBe(7000);
     expect(order?.deliveryAddress).toContain("Akwa");
   });
 

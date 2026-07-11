@@ -43,6 +43,9 @@ export function mergeContext(
     browse: Object.prototype.hasOwnProperty.call(patch, "browse")
       ? patch.browse
       : base.browse,
+    pendingMenuItemRef: Object.prototype.hasOwnProperty.call(patch, "pendingMenuItemRef")
+      ? patch.pendingMenuItemRef
+      : base.pendingMenuItemRef,
     reservation: Object.prototype.hasOwnProperty.call(patch, "reservation")
       ? patch.reservation
       : base.reservation,

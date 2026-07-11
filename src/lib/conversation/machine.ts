@@ -38,6 +38,9 @@ export const BUTTON = {
   CART_ADD: "cart_add",
   CART_CHECKOUT: "cart_checkout",
   CART_CLEAR: "cart_clear",
+  QTY_1: "qty_1",
+  QTY_2: "qty_2",
+  QTY_3: "qty_3",
   SERVICE_DELIVERY: "service_delivery",
   SERVICE_PICKUP: "service_pickup",
   ORDER_CONFIRM: "order_confirm",
@@ -72,6 +75,7 @@ export function normalizeButtonValue(value: string): string {
     english: BUTTON.LANG_EN,
     [BUTTON.CART_ADD]: BUTTON.CART_ADD,
     ajouter: BUTTON.CART_ADD,
+    "autre plat": BUTTON.CART_ADD,
     "add more": BUTTON.CART_ADD,
     [BUTTON.CART_CHECKOUT]: BUTTON.CART_CHECKOUT,
     valider: BUTTON.CART_CHECKOUT,
@@ -79,6 +83,9 @@ export function normalizeButtonValue(value: string): string {
     [BUTTON.CART_CLEAR]: BUTTON.CART_CLEAR,
     vider: BUTTON.CART_CLEAR,
     clear: BUTTON.CART_CLEAR,
+    [BUTTON.QTY_1]: BUTTON.QTY_1,
+    [BUTTON.QTY_2]: BUTTON.QTY_2,
+    [BUTTON.QTY_3]: BUTTON.QTY_3,
     [BUTTON.SERVICE_DELIVERY]: BUTTON.SERVICE_DELIVERY,
     livraison: BUTTON.SERVICE_DELIVERY,
     delivery: BUTTON.SERVICE_DELIVERY,
@@ -256,7 +263,7 @@ function cartEffects(
 
   return [
     text(t("cart_header", lang, { lines: linesText, total })),
-    buttons(t("btn_checkout", lang), [
+    buttons(t("cart_prompt", lang), [
       { id: BUTTON.CART_ADD, title: t("btn_add_item", lang) },
       { id: BUTTON.CART_CHECKOUT, title: t("btn_checkout", lang) },
       { id: BUTTON.CART_CLEAR, title: t("btn_clear_cart", lang) },
@@ -364,6 +371,8 @@ export function handleInput(
       return handleChoosingLanguage(ctx, lang, restaurant, value);
     case "BROWSING_MENU":
       return handleBrowsingMenu(ctx, lang, restaurant, menu, value);
+    case "COLLECTING_QTY":
+      return handleCollectingQty(ctx, lang, restaurant, menu, value);
     case "CART":
       return handleCart(ctx, lang, restaurant, menu, value);
     case "CHOOSING_SERVICE":
@@ -508,13 +517,19 @@ function handleBrowsingMenu(
     ctx.browse?.mode === "items" ? ctx.browse.category : undefined;
   const menuItem = resolveItemSelection(value, menu, browseCategory);
   if (menuItem) {
-    const items = addToCart(ctx.items, menuItem.externalRef, 1);
-    const nextCtx = mergeContext(ctx, { items });
-    const qty = items.find((i) => i.menuItemRef === menuItem.externalRef)?.qty ?? 1;
-    return result("CART", ctx, { items, browse: undefined }, lang, [
-      text(t("item_added", lang, { name: menuItem.name, qty })),
-      ...cartEffects(lang, nextCtx, menu),
-    ]);
+    return result(
+      "COLLECTING_QTY",
+      ctx,
+      { pendingMenuItemRef: menuItem.externalRef },
+      lang,
+      [
+        buttons(t("ask_qty", lang, { name: menuItem.name }), [
+          { id: BUTTON.QTY_1, title: t("btn_qty_1", lang) },
+          { id: BUTTON.QTY_2, title: t("btn_qty_2", lang) },
+          { id: BUTTON.QTY_3, title: t("btn_qty_3", lang) },
+        ]),
+      ],
+    );
   }
 
   if (value === BUTTON.MENU_NEXT || value === BUTTON.MENU_PREV) {
@@ -558,6 +573,59 @@ function handleBrowsingMenu(
   }
 
   return goStart(ctx, lang, restaurant, [text(t("unknown", lang))]);
+}
+
+function handleCollectingQty(
+  ctx: ConversationContext,
+  lang: ConversationLanguage,
+  restaurant: RestaurantView,
+  menu: MenuItemView[],
+  value: string,
+): MachineResult {
+  const ref = ctx.pendingMenuItemRef;
+  if (!ref) {
+    return goStart(ctx, lang, restaurant, [text(t("unknown", lang))]);
+  }
+
+  const menuItem = menu.find((m) => m.externalRef === ref);
+  if (!menuItem) {
+    return result("BROWSING_MENU", ctx, { pendingMenuItemRef: undefined }, lang, [
+      text(t("menu_empty", lang)),
+    ]);
+  }
+
+  let qty = 0;
+  if (value === BUTTON.QTY_1) qty = 1;
+  else if (value === BUTTON.QTY_2) qty = 2;
+  else if (value === BUTTON.QTY_3) qty = 3;
+  else {
+    const n = Number.parseInt(value, 10);
+    if (n >= 1 && n <= 20) qty = n;
+  }
+
+  if (!qty) {
+    return result("COLLECTING_QTY", ctx, {}, lang, [
+      buttons(t("ask_qty", lang, { name: menuItem.name }), [
+        { id: BUTTON.QTY_1, title: t("btn_qty_1", lang) },
+        { id: BUTTON.QTY_2, title: t("btn_qty_2", lang) },
+        { id: BUTTON.QTY_3, title: t("btn_qty_3", lang) },
+      ]),
+    ]);
+  }
+
+  const items = addToCart(ctx.items, ref, qty);
+  const nextCtx = mergeContext(ctx, { items, pendingMenuItemRef: undefined });
+  const lineQty = items.find((i) => i.menuItemRef === ref)?.qty ?? qty;
+  return result(
+    "CART",
+    ctx,
+    { items, pendingMenuItemRef: undefined, browse: undefined },
+    lang,
+    [
+      text(t("item_added", lang, { name: menuItem.name, qty: lineQty })),
+      ...cartEffects(lang, nextCtx, menu),
+    ],
+  );
 }
 
 function handleCart(

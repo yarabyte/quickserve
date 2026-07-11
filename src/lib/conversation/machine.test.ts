@@ -122,15 +122,38 @@ describe("handleInput — parcours commande livraison", () => {
     expect(s.outcome.context.browse).toMatchObject({ mode: "items", category: "Plats" });
     current = step(current, categoryRowId("Plats"), "list").next;
 
-    // Sélection Poulet DG → panier
+    // Sélection Poulet DG → quantité
     s = step(current, itemRowId("sheet-row-1"), "list");
+    expect(s.outcome.nextState).toBe("COLLECTING_QTY");
+    expect(s.outcome.context.pendingMenuItemRef).toBe("sheet-row-1");
+    current = s.next;
+
+    // Quantité 2 → panier
+    s = step(current, BUTTON.QTY_2);
     expect(s.outcome.nextState).toBe("CART");
-    expect(s.outcome.context.items).toEqual([{ menuItemRef: "sheet-row-1", qty: 1 }]);
+    expect(s.outcome.context.items).toEqual([{ menuItemRef: "sheet-row-1", qty: 2 }]);
     expect(
       s.outcome.effects.some(
         (e) => e.type === "send_text" && e.text.includes("Poulet DG"),
       ),
     ).toBe(true);
+    current = s.next;
+
+    // Autre plat → catégories
+    s = step(current, BUTTON.CART_ADD);
+    expect(s.outcome.nextState).toBe("BROWSING_MENU");
+    current = s.next;
+    s = step(current, categoryRowId("Boissons"), "list");
+    current = s.next;
+    s = step(current, itemRowId("sheet-row-4"), "list");
+    expect(s.outcome.nextState).toBe("COLLECTING_QTY");
+    current = s.next;
+    s = step(current, BUTTON.QTY_1);
+    expect(s.outcome.nextState).toBe("CART");
+    expect(s.outcome.context.items).toEqual([
+      { menuItemRef: "sheet-row-1", qty: 2 },
+      { menuItemRef: "sheet-row-4", qty: 1 },
+    ]);
     current = s.next;
 
     // Valider → service
@@ -149,7 +172,7 @@ describe("handleInput — parcours commande livraison", () => {
     expect(s.outcome.context.deliveryAddress).toBe("Rue de la Joie, Douala");
     expect(s.outcome.context.serviceType).toBe("DELIVERY");
     const summary = s.outcome.effects.find((e) => e.type === "send_text");
-    expect(summary?.type === "send_text" && summary.text).toContain("3500");
+    expect(summary?.type === "send_text" && summary.text).toContain("7500");
     current = s.next;
 
     // Confirmer
@@ -158,9 +181,12 @@ describe("handleInput — parcours commande livraison", () => {
     expect(s.outcome.context.items).toEqual([]);
     expect(s.outcome.context.pendingOrder).toMatchObject({
       type: "DELIVERY",
-      totalXAF: 3500,
+      totalXAF: 7500,
       deliveryAddress: "Rue de la Joie, Douala",
-      items: [{ menuItemRef: "sheet-row-1", name: "Poulet DG", qty: 1, unitPriceXAF: 3500 }],
+      items: [
+        { menuItemRef: "sheet-row-1", name: "Poulet DG", qty: 2, unitPriceXAF: 3500 },
+        { menuItemRef: "sheet-row-4", name: "Jus de bissap", qty: 1, unitPriceXAF: 500 },
+      ],
     });
     expect(
       s.outcome.effects.some(
@@ -170,16 +196,23 @@ describe("handleInput — parcours commande livraison", () => {
   });
 
   it("ajoute plusieurs plats et calcule le total", () => {
-    let current = conv({ state: "BROWSING_MENU", context: { items: [], browse: { mode: "items", category: "Plats", page: 1 } } });
+    let current = conv({
+      state: "BROWSING_MENU",
+      context: { items: [], browse: { mode: "items", category: "Plats", page: 1 } },
+    });
 
     let s = step(current, itemRowId("sheet-row-1"), "list");
+    expect(s.outcome.nextState).toBe("COLLECTING_QTY");
     current = s.next;
-    // Remettre en browsing pour 2e item
+    s = step(current, BUTTON.QTY_1);
+    current = s.next;
     s = step(current, BUTTON.CART_ADD);
     current = s.next;
     s = step(current, categoryRowId("Boissons"), "list");
     current = s.next;
     s = step(current, itemRowId("sheet-row-4"), "list");
+    current = s.next;
+    s = step(current, BUTTON.QTY_1);
 
     expect(s.outcome.context.items).toEqual([
       { menuItemRef: "sheet-row-1", qty: 1 },
