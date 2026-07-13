@@ -95,43 +95,20 @@ describe("handleInput — parcours commande livraison", () => {
     expect(s.outcome.effects.some((e) => e.type === "send_buttons")).toBe(true);
     current = s.next;
 
-    // Commander → catégories
+    // Commander → menu plat (≤10 plats = une seule liste, sans étape catégories)
     s = step(current, BUTTON.ORDER);
     expect(s.outcome.nextState).toBe("BROWSING_MENU");
-    const catList = s.outcome.effects.find((e) => e.type === "send_list");
-    expect(catList?.type).toBe("send_list");
-    if (catList?.type === "send_list") {
-      expect(catList.payload.sections[0]?.rows.map((r) => r.id)).toContain(
-        categoryRowId("Plats"),
-      );
+    expect(s.outcome.context.browse).toMatchObject({ mode: "flat" });
+    const flatList = s.outcome.effects.find((e) => e.type === "send_list");
+    expect(flatList?.type).toBe("send_list");
+    if (flatList?.type === "send_list") {
+      const rowIds = flatList.payload.sections.flatMap((sec) => sec.rows.map((r) => r.id));
+      expect(rowIds).toContain(itemRowId("sheet-row-1"));
+      expect(rowIds).toContain(itemRowId("sheet-row-4"));
     }
     current = s.next;
 
-    // Catégorie Plats → photos des plats (si ImageURL) puis liste interactive
-    s = step(current, categoryRowId("Plats"), "list");
-    expect(s.outcome.nextState).toBe("BROWSING_MENU");
-    expect(s.outcome.context.browse).toMatchObject({
-      mode: "items",
-      category: "Plats",
-    });
-    expect(
-      s.outcome.effects.some(
-        (e) => e.type === "send_image" && e.url === "https://example.com/poulet.jpg",
-      ),
-    ).toBe(true);
-    expect(s.outcome.effects.some((e) => e.type === "send_list")).toBe(true);
-    current = s.next;
-
-    // Fallback titre seul (payload WATI sans id)
-    s = step(
-      conv({ state: "BROWSING_MENU", context: { items: [], browse: { mode: "categories", page: 1 } } }),
-      "Plats",
-      "list",
-    );
-    expect(s.outcome.context.browse).toMatchObject({ mode: "items", category: "Plats" });
-    current = step(current, categoryRowId("Plats"), "list").next;
-
-    // Sélection Poulet DG → photo + ajout ×1 au panier
+    // Sélection Poulet DG depuis la liste plate → photo + panier (1 message boutons)
     s = step(current, itemRowId("sheet-row-1"), "list");
     expect(s.outcome.nextState).toBe("CART");
     expect(s.outcome.context.items).toEqual([{ menuItemRef: "sheet-row-1", qty: 1 }]);
@@ -144,9 +121,10 @@ describe("handleInput — parcours commande livraison", () => {
           e.caption?.includes("Poulet DG"),
       ),
     ).toBe(true);
+    expect(s.outcome.effects.filter((e) => e.type === "send_text")).toHaveLength(0);
     expect(
       s.outcome.effects.some(
-        (e) => e.type === "send_text" && e.text.includes("Poulet DG"),
+        (e) => e.type === "send_buttons" && e.payload.body.includes("Poulet DG"),
       ),
     ).toBe(true);
     current = s.next;
@@ -157,15 +135,10 @@ describe("handleInput — parcours commande livraison", () => {
     expect(s.outcome.context.items).toEqual([{ menuItemRef: "sheet-row-1", qty: 2 }]);
     current = s.next;
 
-    // Autre plat → reste dans la même catégorie (Plats)
+    // Autre plat → menu plat à nouveau
     s = step(current, BUTTON.CART_ADD);
     expect(s.outcome.nextState).toBe("BROWSING_MENU");
-    expect(s.outcome.context.browse).toMatchObject({
-      mode: "items",
-      category: "Plats",
-    });
-    current = s.next;
-    s = step(current, categoryRowId("Boissons"), "list");
+    expect(s.outcome.context.browse).toMatchObject({ mode: "flat" });
     current = s.next;
     s = step(current, itemRowId("sheet-row-4"), "list");
     expect(s.outcome.nextState).toBe("CART");
@@ -190,8 +163,8 @@ describe("handleInput — parcours commande livraison", () => {
     expect(s.outcome.nextState).toBe("ORDER_SUMMARY");
     expect(s.outcome.context.deliveryAddress).toBe("Rue de la Joie, Douala");
     expect(s.outcome.context.serviceType).toBe("DELIVERY");
-    const summary = s.outcome.effects.find((e) => e.type === "send_text");
-    expect(summary?.type === "send_text" && summary.text).toContain("7500");
+    const summary = s.outcome.effects.find((e) => e.type === "send_buttons");
+    expect(summary?.type === "send_buttons" && summary.payload.body).toContain("7500");
     current = s.next;
 
     // Confirmer

@@ -204,6 +204,101 @@ function buildCategoriesList(
   };
 }
 
+/** One WhatsApp list (max 10 rows) with a section per category — skips category pick. */
+function buildFlatMenuList(
+  lang: ConversationLanguage,
+  menu: MenuItemView[],
+): OutboundEffect | null {
+  const available = menu.filter((item) => item.isAvailable);
+  if (available.length === 0) return null;
+
+  const categories = listCategories(available);
+  const sections = categories
+    .map((category) => {
+      const rows = itemsInCategory(available, category).map((item) => ({
+        id: itemRowId(item.externalRef),
+        title: item.name.slice(0, 24),
+        description: `${item.priceXAF} FCFA`.slice(0, 72),
+      }));
+      if (rows.length === 0) return null;
+      return { title: category.slice(0, 24), rows };
+    })
+    .filter(
+      (s): s is { title: string; rows: Array<{ id: string; title: string; description: string }> } =>
+        s !== null,
+    );
+
+  const totalRows = sections.reduce((n, s) => n + s.rows.length, 0);
+  if (totalRows === 0 || totalRows > 10) return null;
+
+  return {
+    type: "send_list",
+    payload: {
+      header: t("menu_flat_header", lang),
+      body: t("menu_flat_body", lang),
+      button: t("menu_flat_button", lang),
+      sections,
+    },
+  };
+}
+
+/**
+ * Prefer the shortest browse path:
+ * - ≤10 dishes → one flat list (no category step)
+ * - 1 category → open items directly
+ * - else → categories list
+ */
+function startOrdering(
+  ctx: ConversationContext,
+  lang: ConversationLanguage,
+  menu: MenuItemView[],
+): MachineResult {
+  const available = menu.filter((item) => item.isAvailable);
+  if (available.length === 0) {
+    return result("START", ctx, {}, lang, [text(t("menu_empty", lang))]);
+  }
+
+  if (available.length <= 10) {
+    const flat = buildFlatMenuList(lang, available);
+    if (flat) {
+      return result(
+        "BROWSING_MENU",
+        ctx,
+        { browse: { mode: "flat", page: 1 } },
+        lang,
+        [flat],
+      );
+    }
+  }
+
+  const categories = listCategories(available);
+  if (categories.length === 1) {
+    const only = categories[0]!;
+    const opened = openItemsPageEffects(lang, menu, only, 1, ctx.items.length > 0);
+    if (opened) {
+      return result(
+        "BROWSING_MENU",
+        ctx,
+        { browse: { mode: "items", category: only, page: opened.page } },
+        lang,
+        opened.effects,
+      );
+    }
+  }
+
+  const list = buildCategoriesList(lang, menu);
+  if (!list) {
+    return result("START", ctx, {}, lang, [text(t("menu_empty", lang))]);
+  }
+  return result(
+    "BROWSING_MENU",
+    ctx,
+    { browse: { mode: "categories", page: 1 } },
+    lang,
+    [list],
+  );
+}
+
 function buildItemsList(
   lang: ConversationLanguage,
   menu: MenuItemView[],
@@ -220,7 +315,6 @@ function buildItemsList(
     description: `${item.priceXAF} FCFA`.slice(0, 72),
   }));
 
-  // WhatsApp max 10 rows — reserve slots for pagination nav via buttons after list if needed
   return {
     page: page.page,
     pages: page.pages,
@@ -238,33 +332,22 @@ function buildItemsList(
 }
 
 /**
- * WhatsApp interactive lists cannot show photos — send dish images before the list.
- * Cap to avoid flooding the chat (page size is already ≤10).
+ * Photo is sent once when the dish is selected (lists can't show images).
+ * No extra shortcut-button message on single-page lists.
  */
-function dishPreviewEffects(items: MenuItemView[]): OutboundEffect[] {
-  const withPhotos = items.filter((item) => item.imageUrl).slice(0, 8);
-  return withPhotos
-    .map((item) => dishImageEffect(item))
-    .filter((effect): effect is OutboundEffect => effect !== null);
-}
-
 function openItemsPageEffects(
   lang: ConversationLanguage,
   menu: MenuItemView[],
   category: string,
   pageNum: number,
-  hasCart: boolean,
+  _hasCart: boolean,
 ): { effects: OutboundEffect[]; page: number; pages: number } | null {
   const built = buildItemsList(lang, menu, category, pageNum);
   if (!built) return null;
 
-  const effects: OutboundEffect[] = [
-    ...dishPreviewEffects(built.items),
-    built.effect,
-  ];
+  const effects: OutboundEffect[] = [built.effect];
   const nav = paginationButtons(lang, built.page, built.pages);
   if (nav) effects.push(nav);
-  else effects.push(browseShortcuts(lang, hasCart));
 
   return { effects, page: built.page, pages: built.pages };
 }
@@ -282,7 +365,7 @@ function paginationButtons(
   return buttons(t("menu_items_body", lang, { page, pages }), btns.slice(0, 3));
 }
 
-/** Shortcuts under a single-page dish list (back / cart / home). */
+/** Shortcuts under a single-page dish list (back / cart / home). Kept for rare fallbacks. */
 function browseShortcuts(lang: ConversationLanguage, hasCart: boolean): OutboundEffect {
   const btns: Array<{ id: string; title: string }> = [
     { id: BUTTON.ORDER, title: t("menu_categories_button", lang) },
@@ -317,8 +400,7 @@ function cartEffects(
 ): OutboundEffect[] {
   if (ctx.items.length === 0) {
     return [
-      text(t("cart_empty", lang)),
-      buttons(t("unknown", lang), [
+      buttons(t("cart_empty", lang), [
         { id: BUTTON.ORDER, title: t("btn_order", lang) },
         { id: BUTTON.HOME, title: t("back_home", lang) },
       ]),
@@ -326,6 +408,7 @@ function cartEffects(
   }
 
   const { linesText, total } = formatCartLines(lang, ctx, menu);
+  // Single interactive message: cart text lives in the buttons body (saves 1 outbound).
   const body = justAdded
     ? t("cart_after_add", lang, {
         name: justAdded.name,
@@ -336,8 +419,7 @@ function cartEffects(
     : t("cart_header", lang, { lines: linesText, total });
 
   return [
-    text(body),
-    buttons(t("cart_prompt", lang), [
+    buttons(body.slice(0, 1024), [
       { id: BUTTON.CART_ADD, title: t("btn_add_item", lang) },
       { id: BUTTON.CART_CHECKOUT, title: t("btn_checkout", lang) },
       { id: BUTTON.CART_CLEAR, title: t("btn_clear_cart", lang) },
@@ -350,6 +432,10 @@ function reopenCategoryOrCategories(
   lang: ConversationLanguage,
   menu: MenuItemView[],
 ): MachineResult {
+  if (ctx.browse?.mode === "flat") {
+    return startOrdering(ctx, lang, menu);
+  }
+
   const category =
     ctx.browse?.mode === "items" && ctx.browse.category ? ctx.browse.category : undefined;
 
@@ -366,14 +452,7 @@ function reopenCategoryOrCategories(
     }
   }
 
-  const list = buildCategoriesList(lang, menu);
-  return result(
-    "BROWSING_MENU",
-    ctx,
-    { browse: { mode: "categories", page: 1 } },
-    lang,
-    list ? [list] : [text(t("menu_empty", lang))],
-  );
+  return startOrdering(ctx, lang, menu);
 }
 
 function addItemToCartFlow(
@@ -391,9 +470,11 @@ function addItemToCartFlow(
     lastAddedRef: menuItem.externalRef,
   });
   const browse =
-    ctx.browse?.mode === "items" && ctx.browse.category
+    ctx.browse?.mode === "flat"
       ? ctx.browse
-      : { mode: "items" as const, category: menuItem.categoryName, page: 1 };
+      : ctx.browse?.mode === "items" && ctx.browse.category
+        ? ctx.browse
+        : { mode: "items" as const, category: menuItem.categoryName, page: 1 };
 
   const image = dishImageEffect(menuItem);
   return result(
@@ -439,19 +520,19 @@ function orderSummaryEffects(
       : "";
 
   return [
-    text(
+    buttons(
       t("order_summary", lang, {
         service,
         lines: linesText,
         total,
         address,
-      }),
+      }).slice(0, 1024),
+      [
+        { id: BUTTON.ORDER_CONFIRM, title: t("btn_confirm", lang) },
+        { id: BUTTON.CART_EDIT, title: t("btn_edit_cart", lang) },
+        { id: BUTTON.ORDER_CANCEL, title: t("btn_cancel", lang) },
+      ],
     ),
-    buttons(t("btn_confirm", lang), [
-      { id: BUTTON.ORDER_CONFIRM, title: t("btn_confirm", lang) },
-      { id: BUTTON.CART_EDIT, title: t("btn_edit_cart", lang) },
-      { id: BUTTON.ORDER_CANCEL, title: t("btn_cancel", lang) },
-    ]),
   ];
 }
 
@@ -548,20 +629,7 @@ function handleStart(
     if (value === "__tenant_linked__") {
       return goStart(ctx, lang, restaurant);
     }
-    const list = buildCategoriesList(lang, menu);
-    if (!list) {
-      return result("START", ctx, {}, lang, [
-        text(t("menu_empty", lang)),
-        startButtons(lang, restaurant.name),
-      ]);
-    }
-    return result(
-      "BROWSING_MENU",
-      ctx,
-      { browse: { mode: "categories", page: 1 } },
-      lang,
-      [list],
-    );
+    return startOrdering(ctx, lang, menu);
   }
 
   if (value === BUTTON.RESERVE) {
@@ -674,14 +742,7 @@ function handleBrowsingMenu(
   if (value === BUTTON.MENU_NEXT || value === BUTTON.MENU_PREV) {
     const browse = ctx.browse;
     if (!browse || browse.mode !== "items" || !browse.category) {
-      const list = buildCategoriesList(lang, menu);
-      return result(
-        "BROWSING_MENU",
-        ctx,
-        { browse: { mode: "categories", page: 1 } },
-        lang,
-        list ? [list] : [text(t("menu_empty", lang))],
-      );
+      return startOrdering(ctx, lang, menu);
     }
     const delta = value === BUTTON.MENU_NEXT ? 1 : -1;
     const opened = openItemsPageEffects(
@@ -704,14 +765,7 @@ function handleBrowsingMenu(
   }
 
   if (value === BUTTON.ORDER) {
-    const list = buildCategoriesList(lang, menu);
-    return result(
-      "BROWSING_MENU",
-      ctx,
-      { browse: { mode: "categories", page: 1 } },
-      lang,
-      list ? [list] : [text(t("menu_empty", lang))],
-    );
+    return startOrdering(ctx, lang, menu);
   }
 
   return goStart(ctx, lang, restaurant, [text(t("unknown", lang))]);

@@ -22,7 +22,7 @@ export type CartItem = {
 
 export type OrderServiceType = "DELIVERY" | "PICKUP";
 
-export type BrowseMode = "categories" | "items";
+export type BrowseMode = "categories" | "items" | "flat";
 
 export type ConversationContext = {
   items: CartItem[];
