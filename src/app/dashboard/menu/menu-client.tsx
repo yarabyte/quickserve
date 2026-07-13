@@ -8,7 +8,6 @@ import {
   createMenuItemAction,
   deleteMenuItemAction,
   updateMenuItemAction,
-  uploadMenuImageAction,
 } from "@/lib/dashboard/menu-actions";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Badge } from "@/components/ui/badge";
@@ -102,8 +101,16 @@ export function MenuClient({
     try {
       const fd = new FormData();
       fd.set("file", file);
-      const result = await uploadMenuImageAction(restaurantId, fd);
-      setForm((prev) => ({ ...prev, imageUrl: result.url }));
+      const res = await fetch(`/api/restaurants/${restaurantId}/menu/image`, {
+        method: "POST",
+        body: fd,
+      });
+      const data = (await res.json()) as { ok?: boolean; url?: string; error?: string };
+      if (!res.ok || !data.url) {
+        throw new Error(data.error || `Upload échoué (${res.status})`);
+      }
+      setForm((prev) => ({ ...prev, imageUrl: data.url! }));
+      setMessage("Photo ajoutée — pensez à Enregistrer");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Upload échoué");
     } finally {
@@ -166,7 +173,17 @@ export function MenuClient({
       />
 
       {message ? (
-        <p className="rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-900 ring-1 ring-emerald-200">
+        <p
+          className={
+            message.includes("échoué") ||
+            message.includes("Impossible") ||
+            message.includes("permissions") ||
+            message.includes("Erreur") ||
+            message.includes("manquant")
+              ? "rounded-xl bg-red-50 px-3 py-2 text-sm text-red-900 ring-1 ring-red-200"
+              : "rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-900 ring-1 ring-emerald-200"
+          }
+        >
           {message}
         </p>
       ) : null}

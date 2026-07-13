@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, writeFile, access, constants } from "node:fs/promises";
 import path from "node:path";
 import { randomBytes } from "node:crypto";
 
@@ -27,8 +27,25 @@ function extForMime(mime: string): string {
   return "jpg";
 }
 
+function mapWriteError(error: unknown, dir: string): Error {
+  const code =
+    error && typeof error === "object" && "code" in error
+      ? String((error as { code?: string }).code)
+      : "";
+  if (code === "EACCES" || code === "EPERM") {
+    return new Error(
+      `Impossible d’écrire dans ${dir} (permissions). Sur Coolify : Persistent Storage → /data/uploads, variable UPLOAD_DIR=/data/uploads, puis Redeploy. Le volume doit être accessible en écriture.`,
+    );
+  }
+  if (code === "ENOENT") {
+    return new Error(`Dossier upload introuvable : ${dir}`);
+  }
+  const message = error instanceof Error ? error.message : String(error);
+  return new Error(`Échec enregistrement image : ${message}`);
+}
+
 /**
- * Save a dish photo under uploads/{restaurantId}/ and return a public app URL.
+ * Save a dish photo under uploads/menu/{restaurantId}/ and return a public app URL.
  */
 export async function saveMenuImage(input: {
   restaurantId: string;
@@ -45,12 +62,24 @@ export async function saveMenuImage(input: {
     throw new Error("Image trop lourde (max 5 Mo)");
   }
 
-  const dir = path.join(getUploadRoot(), "menu", input.restaurantId);
-  await mkdir(dir, { recursive: true });
+  const root = getUploadRoot();
+  const dir = path.join(root, "menu", input.restaurantId);
+
+  try {
+    await mkdir(dir, { recursive: true });
+    await access(dir, constants.W_OK);
+  } catch (error) {
+    throw mapWriteError(error, dir);
+  }
 
   const filename = `${Date.now()}-${randomBytes(4).toString("hex")}.${extForMime(input.mimeType)}`;
   const absolute = path.join(dir, filename);
-  await writeFile(absolute, input.bytes);
+
+  try {
+    await writeFile(absolute, input.bytes);
+  } catch (error) {
+    throw mapWriteError(error, dir);
+  }
 
   const relativePath = `menu/${input.restaurantId}/${filename}`;
   const publicUrl = `${getPublicAppOrigin()}/api/media/${relativePath}`;
@@ -59,6 +88,7 @@ export async function saveMenuImage(input: {
     restaurantId: input.restaurantId,
     relativePath,
     bytes: input.bytes.byteLength,
+    uploadRoot: root,
   });
 
   return { relativePath, publicUrl };

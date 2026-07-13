@@ -28,9 +28,13 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
+ENV UPLOAD_DIR=/data/uploads
 
-RUN addgroup --system --gid 1001 nodejs \
-  && adduser --system --uid 1001 nextjs
+RUN apk add --no-cache su-exec \
+  && addgroup --system --gid 1001 nodejs \
+  && adduser --system --uid 1001 nextjs \
+  && mkdir -p /data/uploads/menu \
+  && chown -R nextjs:nodejs /data/uploads
 
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
@@ -45,9 +49,11 @@ COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma/client ./nod
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 
 COPY --chown=nextjs:nodejs scripts/docker-entrypoint.sh ./docker-entrypoint.sh
+COPY --chown=nextjs:nodejs scripts/ensure-imageurl.js ./scripts/ensure-imageurl.js
 RUN chmod +x ./docker-entrypoint.sh
 
-USER nextjs
+# Start as root so entrypoint can chown the Coolify volume, then drop to nextjs
+USER root
 EXPOSE 3000
 
 ENTRYPOINT ["./docker-entrypoint.sh"]

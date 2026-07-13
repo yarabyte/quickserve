@@ -5,7 +5,6 @@ import { z } from "zod";
 
 import { auth } from "@/auth";
 import { withTenant } from "@/lib/auth/tenant";
-import { saveMenuImage } from "@/lib/media/storage";
 import { prisma } from "@/lib/prisma";
 import { slugifyRestaurantName } from "@/lib/tenant/subscription";
 
@@ -115,28 +114,6 @@ export async function deleteMenuItemAction(restaurantId: string, itemId: string)
       await prisma.menuItemCache.delete({ where: { id: itemId } });
       revalidatePath("/dashboard/menu");
       return { ok: true };
-    },
-    { restaurantId, roles: ["OWNER", "SUPERADMIN", "STAFF"] },
-  );
-}
-
-export async function uploadMenuImageAction(restaurantId: string, formData: FormData) {
-  const session = await auth();
-  return withTenant(
-    session,
-    async () => {
-      const file = formData.get("file");
-      if (!(file instanceof File)) {
-        throw new Error("Fichier manquant");
-      }
-      const mime = file.type || "application/octet-stream";
-      const bytes = new Uint8Array(await file.arrayBuffer());
-      const saved = await saveMenuImage({
-        restaurantId,
-        bytes,
-        mimeType: mime,
-      });
-      return { url: saved.publicUrl };
     },
     { restaurantId, roles: ["OWNER", "SUPERADMIN", "STAFF"] },
   );
