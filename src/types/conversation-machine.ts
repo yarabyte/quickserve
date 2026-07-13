@@ -64,6 +64,8 @@ export type MenuItemView = {
   categoryName: string;
   name: string;
   description: string | null;
+  /** Public https image URL shown when the guest picks this dish */
+  imageUrl: string | null;
   priceXAF: number;
   isAvailable: boolean;
   position: number;

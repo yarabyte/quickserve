@@ -2,6 +2,7 @@ import {
   isSessionActive,
   sendInteractiveButtons,
   sendInteractiveList,
+  sendSessionImage,
   sendSessionText,
   sendTemplate,
 } from "@/lib/wati/client";
@@ -13,6 +14,7 @@ export type ApplyEffectsDeps = {
   sendText?: typeof sendSessionText;
   sendButtons?: typeof sendInteractiveButtons;
   sendList?: typeof sendInteractiveList;
+  sendImage?: typeof sendSessionImage;
   sendTemplateMsg?: typeof sendTemplate;
 };
 
@@ -28,6 +30,7 @@ export async function applyOutboundEffects(
   const sendText = deps.sendText ?? sendSessionText;
   const sendButtons = deps.sendButtons ?? sendInteractiveButtons;
   const sendList = deps.sendList ?? sendInteractiveList;
+  const sendImage = deps.sendImage ?? sendSessionImage;
   const sendTemplateMsg = deps.sendTemplateMsg ?? sendTemplate;
 
   const sessionOk = isSessionActive({ lastInboundAt: conversation.lastInboundAt });
@@ -67,6 +70,9 @@ export async function applyOutboundEffects(
         break;
       case "send_list":
         result = await sendList(conversation.waId, effect.payload);
+        break;
+      case "send_image":
+        result = await sendImage(conversation.waId, effect.url, effect.caption);
         break;
       case "send_template":
         result = await sendTemplateMsg(

@@ -90,12 +90,20 @@ export const en: Record<MessageKey, string> = {
   "dash.reservations.title": "Reservations",
   "dash.reservations.empty": "No reservations",
   "dash.menu.title": "Menu — {name}",
-  "dash.menu.readonly":
-    "Read-only cache. Edit the Menu tab in the Google Sheet.",
-  "dash.menu.resync": "Resync",
-  "dash.menu.open_sheet": "Open Google Sheet",
-  "dash.menu.last_sync": "Last sync: {when}",
-  "dash.menu.never": "never",
+  "dash.menu.desc": "Add dishes and photos here. They show on WhatsApp when guests order.",
+  "dash.menu.add": "Add a dish",
+  "dash.menu.edit": "Edit dish",
+  "dash.menu.empty": "No dishes yet — add your first dish.",
+  "dash.menu.category": "Category",
+  "dash.menu.name": "Name",
+  "dash.menu.description": "Description",
+  "dash.menu.price": "Price (FCFA)",
+  "dash.menu.available": "Available",
+  "dash.menu.photo": "Dish photo",
+  "dash.menu.remove_photo": "Remove photo",
+  "dash.menu.uploading": "Uploading…",
+  "dash.menu.save": "Save",
+  "dash.menu.cancel": "Cancel",
   "dash.settings.title": "Settings",
   "dash.billing.title": "Billing",
   "dash.login.title": "Restaurant dashboard login",
@@ -117,9 +125,9 @@ export const en: Record<MessageKey, string> = {
   "landing.steps.title": "Live in three steps",
   "landing.steps.intro":
     "From signup to your first guest — no custom WhatsApp build.",
-  "landing.step1.title": "Menu in Google Sheets",
+  "landing.step1.title": "Menu in the dashboard",
   "landing.step1.body":
-    "Add dishes and prices in your spreadsheet. QuickServe syncs everything for the bot.",
+    "Add dishes, prices, and photos in QuickServe. The WhatsApp bot shows them when guests order.",
   "landing.step2.title": "Your restaurant WhatsApp link",
   "landing.step2.body":
     "Share your wa.me link. The first message automatically ties the guest to your restaurant.",
@@ -128,7 +136,7 @@ export const en: Record<MessageKey, string> = {
     "Orders, reservations, and status updates — guests get notified on WhatsApp at every step.",
   "landing.cta.title": "Ready to serve on WhatsApp?",
   "landing.cta.body":
-    "Create your restaurant, connect your Sheet, and take your first orders in minutes.",
+    "Create your restaurant, add your menu, and take your first orders in minutes.",
   "landing.cta.button": "Start for free",
   "landing.footer.tagline": "Ordering & reservations · WhatsApp · WATI",
 

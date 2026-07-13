@@ -1,20 +1,7 @@
 import { google, type drive_v3, type sheets_v4 } from "googleapis";
 
 import { logger } from "@/lib/logger";
-import {
-  MENU_SHEET,
-  ORDERS_SHEET,
-  RESERVATIONS_SHEET,
-} from "@/lib/google/menu-parse";
-
-const MENU_HEADERS = [
-  "Categorie",
-  "Nom",
-  "Description",
-  "PrixFCFA",
-  "Disponible",
-  "RowRef",
-];
+import { ORDERS_SHEET, RESERVATIONS_SHEET } from "@/lib/google/menu-parse";
 
 const ORDERS_HEADERS = [
   "Date",
@@ -75,8 +62,9 @@ export type ProvisionResult = {
 };
 
 /**
- * Creates a QuickServe spreadsheet with Menu / Commandes / Reservations tabs + headers,
+ * Creates a QuickServe spreadsheet with Commandes / Reservations tabs + headers,
  * then shares it with the owner email as writer.
+ * Menus are managed in the dashboard — no Menu sheet.
  */
 export async function createRestaurantSpreadsheet(input: {
   restaurantName: string;
@@ -93,9 +81,8 @@ export async function createRestaurantSpreadsheet(input: {
         title: `QuickServe — ${input.restaurantName}`,
       },
       sheets: [
-        { properties: { title: MENU_SHEET, index: 0 } },
-        { properties: { title: ORDERS_SHEET, index: 1 } },
-        { properties: { title: RESERVATIONS_SHEET, index: 2 } },
+        { properties: { title: ORDERS_SHEET, index: 0 } },
+        { properties: { title: RESERVATIONS_SHEET, index: 1 } },
       ],
     },
   });
@@ -110,20 +97,9 @@ export async function createRestaurantSpreadsheet(input: {
     requestBody: {
       valueInputOption: "RAW",
       data: [
-        { range: `${MENU_SHEET}!A1:F1`, values: [MENU_HEADERS] },
         { range: `${ORDERS_SHEET}!A1:I1`, values: [ORDERS_HEADERS] },
         { range: `${RESERVATIONS_SHEET}!A1:G1`, values: [RESERVATIONS_HEADERS] },
       ],
-    },
-  });
-
-  // Sample menu row so the bot has something after first sync
-  await sheets.spreadsheets.values.append({
-    spreadsheetId,
-    range: `${MENU_SHEET}!A:F`,
-    valueInputOption: "USER_ENTERED",
-    requestBody: {
-      values: [["Plats", "Exemple plat", "À remplacer", "1000", "oui", "sample-1"]],
     },
   });
 
@@ -142,7 +118,6 @@ export async function createRestaurantSpreadsheet(input: {
       ownerEmail: input.ownerEmail,
       error: error instanceof Error ? error.message : String(error),
     });
-    // Sheet still usable by service account; owner can open via link if shared later
   }
 
   const spreadsheetUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/edit`;
@@ -152,7 +127,7 @@ export async function createRestaurantSpreadsheet(input: {
 }
 
 /**
- * Verifies the service account can read Menu and write to Commandes.
+ * Verifies the service account can read/write the Commandes tab.
  */
 export async function verifySpreadsheetAccess(
   spreadsheetId: string,
@@ -164,10 +139,9 @@ export async function verifySpreadsheetAccess(
     await api.spreadsheets.get({ spreadsheetId });
     await api.spreadsheets.values.get({
       spreadsheetId,
-      range: `${MENU_SHEET}!A1:F1`,
+      range: `${ORDERS_SHEET}!A1:I1`,
     });
 
-    // Write probe then clear — proves editor access
     const probeRange = `${ORDERS_SHEET}!Z1`;
     await api.spreadsheets.values.update({
       spreadsheetId,

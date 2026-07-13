@@ -94,6 +94,7 @@ model MenuItemCache {
   categoryName String
   name         String
   description  String?
+  imageUrl     String?
   priceXAF     Int
   isAvailable  Boolean  @default(true)
   position     Int      @default(0)

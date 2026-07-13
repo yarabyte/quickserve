@@ -19,7 +19,7 @@ const PLANS = [
     name: "Essai",
     price: "Gratuit",
     period: "14 jours",
-    features: ["1 restaurant", "Commandes + réservations WhatsApp", "Menu Google Sheets"],
+    features: ["1 restaurant", "Commandes + réservations WhatsApp", "Menu + photos dashboard"],
   },
   {
     id: "starter",

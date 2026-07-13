@@ -6,7 +6,6 @@ import { z } from "zod";
 
 import { auth } from "@/auth";
 import { withTenant, restaurantWhere } from "@/lib/auth/tenant";
-import { syncMenu } from "@/lib/menu/sync";
 import { updateOrderStatus } from "@/lib/orders/status";
 import { prisma } from "@/lib/prisma";
 
@@ -72,19 +71,6 @@ export async function setReservationStatus(
     revalidatePath("/dashboard/reservations");
     return { status };
   });
-}
-
-export async function resyncMenuAction(restaurantId: string) {
-  const session = await auth();
-  return withTenant(
-    session,
-    async () => {
-      const result = await syncMenu(restaurantId, { prisma });
-      revalidatePath("/dashboard/menu");
-      return result;
-    },
-    { restaurantId },
-  );
 }
 
 const settingsSchema = z.object({

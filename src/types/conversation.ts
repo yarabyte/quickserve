@@ -20,6 +20,7 @@ export type OutboundEffect =
   | { type: "send_text"; text: string }
   | { type: "send_buttons"; payload: WatiSendInteractiveButtonsInput }
   | { type: "send_list"; payload: WatiSendInteractiveListInput }
+  | { type: "send_image"; url: string; caption?: string }
   | {
       type: "send_template";
       templateName: string;

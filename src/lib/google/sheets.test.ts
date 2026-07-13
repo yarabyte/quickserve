@@ -55,12 +55,13 @@ describe("parseMenuRows", () => {
 
   it("maps header values from sheet matrix", () => {
     const rows = rowsFromValues([
-      ["Categorie", "Nom", "Description", "PrixFCFA", "Disponible", "RowRef"],
-      ["Plats", "Ndolé", "Desc", "3000", "yes", "r1"],
+      ["Categorie", "Nom", "Description", "PrixFCFA", "Disponible", "RowRef", "ImageURL"],
+      ["Plats", "Ndolé", "Desc", "3000", "yes", "r1", "https://cdn.example.com/ndole.jpg"],
     ]);
     const { items } = parseMenuRows(rows);
     expect(items[0]?.name).toBe("Ndolé");
     expect(items[0]?.priceXAF).toBe(3000);
+    expect(items[0]?.imageUrl).toBe("https://cdn.example.com/ndole.jpg");
   });
 });
 

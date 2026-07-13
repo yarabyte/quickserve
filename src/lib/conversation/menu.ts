@@ -3,7 +3,6 @@ import type { MenuItemView } from "@/types/conversation-machine";
 import { LIST_PAGE_SIZE } from "./context";
 
 export { getMenu } from "@/lib/menu/sync";
-export type { SyncMenuResult } from "@/lib/menu/sync";
 
 export function listCategories(menu: MenuItemView[]): string[] {
   const seen = new Set<string>();

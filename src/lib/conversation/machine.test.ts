@@ -24,6 +24,7 @@ const menu: MenuItemView[] = [
     categoryName: "Plats",
     name: "Poulet DG",
     description: "Classique",
+    imageUrl: "https://example.com/poulet.jpg",
     priceXAF: 3500,
     isAvailable: true,
     position: 1,
@@ -33,6 +34,7 @@ const menu: MenuItemView[] = [
     categoryName: "Plats",
     name: "Ndolé",
     description: null,
+    imageUrl: null,
     priceXAF: 3000,
     isAvailable: true,
     position: 2,
@@ -42,6 +44,7 @@ const menu: MenuItemView[] = [
     categoryName: "Boissons",
     name: "Jus de bissap",
     description: null,
+    imageUrl: null,
     priceXAF: 500,
     isAvailable: true,
     position: 4,
@@ -122,11 +125,19 @@ describe("handleInput — parcours commande livraison", () => {
     expect(s.outcome.context.browse).toMatchObject({ mode: "items", category: "Plats" });
     current = step(current, categoryRowId("Plats"), "list").next;
 
-    // Sélection Poulet DG → ajout ×1 direct au panier
+    // Sélection Poulet DG → photo + ajout ×1 au panier
     s = step(current, itemRowId("sheet-row-1"), "list");
     expect(s.outcome.nextState).toBe("CART");
     expect(s.outcome.context.items).toEqual([{ menuItemRef: "sheet-row-1", qty: 1 }]);
     expect(s.outcome.context.lastAddedRef).toBe("sheet-row-1");
+    expect(
+      s.outcome.effects.some(
+        (e) =>
+          e.type === "send_image" &&
+          e.url === "https://example.com/poulet.jpg" &&
+          e.caption?.includes("Poulet DG"),
+      ),
+    ).toBe(true);
     expect(
       s.outcome.effects.some(
         (e) => e.type === "send_text" && e.text.includes("Poulet DG"),

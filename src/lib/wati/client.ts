@@ -39,6 +39,7 @@ type WatiLogLevel = "info" | "warn" | "error";
 
 type WatiLogEvent =
   | "send_session_text"
+  | "send_session_image"
   | "send_interactive_buttons"
   | "send_interactive_list"
   | "send_template"
@@ -218,6 +219,79 @@ export async function sendSessionText(
     url,
     { method: "POST" },
     "send_session_text",
+    normalizedWaId,
+  );
+}
+
+/**
+ * Download a public image URL and send it via WATI session file upload.
+ * Caption appears under the photo in WhatsApp.
+ */
+export async function sendSessionImage(
+  waId: string,
+  imageUrl: string,
+  caption?: string,
+  configOverrides?: Partial<WatiClientConfig>,
+): Promise<WatiSendResult> {
+  const config = readConfig(configOverrides);
+  const normalizedWaId = normalizeWaId(waId);
+  const fetchFn = config.fetchFn ?? fetch;
+
+  let fileResponse: Response;
+  try {
+    fileResponse = await fetchFn(imageUrl);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to fetch image";
+    logWati("error", "request_failed", {
+      waId: normalizedWaId,
+      error: message,
+      logEvent: "send_session_image",
+      imageUrl,
+    });
+    return { ok: false, error: message };
+  }
+
+  if (!fileResponse.ok) {
+    const error = `Image download failed with status ${fileResponse.status}`;
+    logWati("error", "request_failed", {
+      waId: normalizedWaId,
+      error,
+      logEvent: "send_session_image",
+      imageUrl,
+    });
+    return { ok: false, error };
+  }
+
+  const bytes = new Uint8Array(await fileResponse.arrayBuffer());
+  if (bytes.byteLength === 0) {
+    return { ok: false, error: "Image download returned empty body" };
+  }
+  if (bytes.byteLength > 5 * 1024 * 1024) {
+    return { ok: false, error: "Image exceeds WhatsApp 5MB limit" };
+  }
+
+  const contentType =
+    fileResponse.headers.get("content-type")?.split(";")[0]?.trim() || "image/jpeg";
+  const fromUrl = imageUrl.split("?")[0]?.split("/").pop() || "dish.jpg";
+  const fileName = /\.(jpe?g|png|gif|webp)$/i.test(fromUrl) ? fromUrl : "dish.jpg";
+
+  const form = new FormData();
+  form.append("file", new Blob([bytes], { type: contentType }), fileName);
+
+  const query = caption
+    ? new URLSearchParams({ caption: caption.slice(0, 1024) }).toString()
+    : undefined;
+  const url = buildApiUrl(
+    config.apiEndpoint,
+    `/api/v1/sendSessionFile/${normalizedWaId}`,
+    query,
+  );
+
+  return watiRequest(
+    config,
+    url,
+    { method: "POST", body: form },
+    "send_session_image",
     normalizedWaId,
   );
 }

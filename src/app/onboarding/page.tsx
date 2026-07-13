@@ -43,8 +43,8 @@ export default function OnboardingPage() {
             Créez votre restaurant
           </h1>
           <p className="mt-3 max-w-sm text-sm leading-relaxed text-muted-foreground md:text-base">
-            Essai gratuit 14 jours. Configurez votre compte, puis connectez Google
-            Sheets pour activer les commandes WhatsApp.
+            Essai gratuit 14 jours. Configurez votre compte, puis connectez Google Sheets pour
+            l’export des commandes et réservations.
           </p>
 
           <ol className="mt-6 flex gap-2 md:mt-8 md:block md:space-y-4 md:gap-0">
@@ -70,7 +70,7 @@ export default function OnboardingPage() {
                   Sheets
                 </p>
                 <p className="hidden text-xs text-muted-foreground md:block">
-                  Menu + deep-link WhatsApp
+                  Export commandes + réservations
                 </p>
               </div>
             </li>

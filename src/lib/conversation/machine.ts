@@ -132,6 +132,12 @@ function text(body: string): OutboundEffect {
   return { type: "send_text", text: body };
 }
 
+function dishImageEffect(menuItem: MenuItemView): OutboundEffect | null {
+  if (!menuItem.imageUrl) return null;
+  const caption = `${menuItem.name} — ${menuItem.priceXAF.toLocaleString("fr-FR")} FCFA`;
+  return { type: "send_image", url: menuItem.imageUrl, caption };
+}
+
 function result(
   nextState: ConversationState,
   ctx: ConversationContext,
@@ -360,6 +366,7 @@ function addItemToCartFlow(
       ? ctx.browse
       : { mode: "items" as const, category: menuItem.categoryName, page: 1 };
 
+  const image = dishImageEffect(menuItem);
   return result(
     "CART",
     ctx,
@@ -370,7 +377,10 @@ function addItemToCartFlow(
       browse,
     },
     lang,
-    cartEffects(lang, nextCtx, menu, { name: menuItem.name, qty: lineQty }),
+    [
+      ...(image ? [image] : []),
+      ...cartEffects(lang, nextCtx, menu, { name: menuItem.name, qty: lineQty }),
+    ],
   );
 }
 

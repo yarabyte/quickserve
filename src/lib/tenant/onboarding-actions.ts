@@ -10,7 +10,7 @@ import {
   getServiceAccountEmail,
   verifySpreadsheetAccess,
 } from "@/lib/google/provision";
-import { syncMenu } from "@/lib/menu/sync";
+import { seedSampleMenu } from "@/lib/menu/seed";
 import { prisma } from "@/lib/prisma";
 import {
   TRIAL_DAYS,
@@ -82,6 +82,8 @@ export async function createTenantAction(raw: unknown): Promise<OnboardResult> {
     },
   });
 
+  await seedSampleMenu(restaurant.id, prisma);
+
   try {
     await signIn("credentials", {
       email,
@@ -140,12 +142,6 @@ export async function provisionSheetCreateAction(): Promise<
           },
         });
 
-        try {
-          await syncMenu(restaurant.id, { prisma });
-        } catch {
-          // non-blocking — sample row may sync later
-        }
-
         return {
           ok: true as const,
           spreadsheetId: provisioned.spreadsheetId,
@@ -197,12 +193,6 @@ export async function connectExistingSheetAction(
             sheetVerifiedAt: new Date(),
           },
         });
-
-        try {
-          await syncMenu(scope.restaurantId, { prisma });
-        } catch {
-          // menu may be empty until filled
-        }
 
         return { ok: true as const };
       },

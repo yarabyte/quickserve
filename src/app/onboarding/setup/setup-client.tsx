@@ -77,8 +77,8 @@ export function SheetSetupClient({
             Activer Google Sheets
           </h1>
           <p className="mt-3 max-w-sm text-sm leading-relaxed text-muted-foreground md:text-base">
-            Le menu et les commandes vivent dans votre Sheet (onglets Menu / Commandes /
-            Reservations).
+            Export des commandes et réservations (onglets Commandes / Reservations). Le menu
+            se gère dans le dashboard.
           </p>
 
           <ol className="mt-6 flex gap-2 md:mt-8 md:block md:space-y-4">
@@ -98,7 +98,7 @@ export function SheetSetupClient({
               <div className="min-w-0">
                 <p className="truncate text-xs font-semibold sm:text-sm">Sheets</p>
                 <p className="hidden text-xs text-muted-foreground md:block">
-                  Menu + deep-link WhatsApp
+                  Export commandes + réservations
                 </p>
               </div>
             </li>

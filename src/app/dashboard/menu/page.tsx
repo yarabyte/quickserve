@@ -46,6 +46,7 @@ export default async function MenuPage({
           categoryName: i.categoryName,
           name: i.name,
           description: i.description,
+          imageUrl: i.imageUrl,
           priceXAF: i.priceXAF,
           isAvailable: i.isAvailable,
           externalRef: i.externalRef,
@@ -62,10 +63,7 @@ export default async function MenuPage({
     <MenuClient
       restaurantId={data.restaurant.id}
       restaurantName={data.restaurant.name}
-      spreadsheetId={data.restaurant.googleSpreadsheetId}
-      menuSyncedAt={data.restaurant.menuSyncedAt?.toISOString() ?? null}
       items={data.items}
-      serviceAccountEmail={process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL ?? null}
     />
   );
 }

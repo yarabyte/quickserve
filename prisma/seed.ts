@@ -14,12 +14,22 @@ import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
-const DEMO_MENU_ITEMS = [
+const DEMO_MENU_ITEMS: Array<{
+  externalRef: string;
+  categoryName: string;
+  name: string;
+  description: string;
+  imageUrl: string | null;
+  priceXAF: number;
+  position: number;
+}> = [
   {
     externalRef: "menu-poulet-dg",
     categoryName: "Plats",
     name: "Poulet DG",
     description: "Poulet sauté aux plantains mûrs, carottes et haricots verts",
+    imageUrl:
+      "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&w=800&q=80",
     priceXAF: 3500,
     position: 1,
   },
@@ -28,6 +38,8 @@ const DEMO_MENU_ITEMS = [
     categoryName: "Plats",
     name: "Ndolé",
     description: "Feuilles de ndolé, arachides, crevettes et bœuf",
+    imageUrl:
+      "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80",
     priceXAF: 3000,
     position: 2,
   },
@@ -36,6 +48,7 @@ const DEMO_MENU_ITEMS = [
     categoryName: "Plats",
     name: "Eru",
     description: "Légumes eru, waterleaf, stockfish et viande fumée",
+    imageUrl: null,
     priceXAF: 2800,
     position: 3,
   },
@@ -44,6 +57,8 @@ const DEMO_MENU_ITEMS = [
     categoryName: "Plats",
     name: "Poisson braisé",
     description: "Bar entier braisé, plantains et sauce piment",
+    imageUrl:
+      "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=800&q=80",
     priceXAF: 4500,
     position: 4,
   },
@@ -52,6 +67,7 @@ const DEMO_MENU_ITEMS = [
     categoryName: "Plats",
     name: "Okok sucré",
     description: "Okok aux arachides et sucre, accompagné de manioc",
+    imageUrl: null,
     priceXAF: 2000,
     position: 5,
   },
@@ -60,6 +76,8 @@ const DEMO_MENU_ITEMS = [
     categoryName: "Grillades",
     name: "Soya (brochettes)",
     description: "Brochettes de bœuf marinées, oignons et piment",
+    imageUrl:
+      "https://images.unsplash.com/photo-1555939596-19271b1f60d9?auto=format&fit=crop&w=800&q=80",
     priceXAF: 1500,
     position: 6,
   },
@@ -68,6 +86,7 @@ const DEMO_MENU_ITEMS = [
     categoryName: "Accompagnements",
     name: "Plantains frits",
     description: "Portion de plantains mûrs frits",
+    imageUrl: null,
     priceXAF: 1000,
     position: 7,
   },
@@ -76,6 +95,7 @@ const DEMO_MENU_ITEMS = [
     categoryName: "Boissons",
     name: "Jus de bissap",
     description: "Boisson fraîche à l'hibiscus, maison",
+    imageUrl: null,
     priceXAF: 500,
     position: 8,
   },
@@ -84,6 +104,7 @@ const DEMO_MENU_ITEMS = [
     categoryName: "Boissons",
     name: "Jus de gingembre",
     description: "Gingembre frais pressé, légèrement épicé",
+    imageUrl: null,
     priceXAF: 500,
     position: 9,
   },
@@ -92,10 +113,11 @@ const DEMO_MENU_ITEMS = [
     categoryName: "Desserts",
     name: "Beignets de banane",
     description: "Beignets maison à la banane plantain",
+    imageUrl: null,
     priceXAF: 800,
     position: 10,
   },
-] as const;
+];
 
 async function main() {
   const spreadsheetId =
@@ -200,6 +222,7 @@ async function main() {
         categoryName: item.categoryName,
         name: item.name,
         description: item.description,
+        imageUrl: item.imageUrl,
         priceXAF: item.priceXAF,
         isAvailable: true,
         position: item.position,
@@ -211,6 +234,7 @@ async function main() {
         categoryName: item.categoryName,
         name: item.name,
         description: item.description,
+        imageUrl: item.imageUrl,
         priceXAF: item.priceXAF,
         isAvailable: true,
         position: item.position,
