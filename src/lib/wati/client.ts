@@ -1,9 +1,17 @@
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+
 import type {
   WatiSendInteractiveButtonsInput,
   WatiSendInteractiveListInput,
   WatiSendResult,
   WatiTemplateParams,
 } from "@/types/wati";
+
+import {
+  mediaRelativePathFromUrl,
+  resolveMediaAbsolutePath,
+} from "@/lib/media/storage";
 
 import {
   buildApiUrl,
@@ -223,8 +231,48 @@ export async function sendSessionText(
   );
 }
 
+const MIME_BY_EXT: Record<string, string> = {
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".png": "image/png",
+  ".webp": "image/webp",
+  ".gif": "image/gif",
+};
+
+async function loadImageBytes(
+  imageUrl: string,
+  fetchFn: FetchFn,
+): Promise<{ bytes: Uint8Array; contentType: string; fileName: string }> {
+  // Prefer local disk for /api/media/... so Coolify does not need to HTTP-fetch itself.
+  const relative = mediaRelativePathFromUrl(imageUrl);
+  if (relative) {
+    const absolute = resolveMediaAbsolutePath(relative);
+    if (absolute) {
+      const bytes = new Uint8Array(await readFile(absolute));
+      const ext = path.extname(absolute).toLowerCase();
+      const fileName = path.basename(absolute);
+      return {
+        bytes,
+        contentType: MIME_BY_EXT[ext] ?? "image/jpeg",
+        fileName,
+      };
+    }
+  }
+
+  const fileResponse = await fetchFn(imageUrl);
+  if (!fileResponse.ok) {
+    throw new Error(`Image download failed with status ${fileResponse.status}`);
+  }
+  const bytes = new Uint8Array(await fileResponse.arrayBuffer());
+  const contentType =
+    fileResponse.headers.get("content-type")?.split(";")[0]?.trim() || "image/jpeg";
+  const fromUrl = imageUrl.split("?")[0]?.split("/").pop() || "dish.jpg";
+  const fileName = /\.(jpe?g|png|gif|webp)$/i.test(fromUrl) ? fromUrl : "dish.jpg";
+  return { bytes, contentType, fileName };
+}
+
 /**
- * Download a public image URL and send it via WATI session file upload.
+ * Load a dish image (local upload preferred) and send it via WATI session file upload.
  * Caption appears under the photo in WhatsApp.
  */
 export async function sendSessionImage(
@@ -237,9 +285,9 @@ export async function sendSessionImage(
   const normalizedWaId = normalizeWaId(waId);
   const fetchFn = config.fetchFn ?? fetch;
 
-  let fileResponse: Response;
+  let loaded: { bytes: Uint8Array; contentType: string; fileName: string };
   try {
-    fileResponse = await fetchFn(imageUrl);
+    loaded = await loadImageBytes(imageUrl, fetchFn);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to fetch image";
     logWati("error", "request_failed", {
@@ -251,32 +299,21 @@ export async function sendSessionImage(
     return { ok: false, error: message };
   }
 
-  if (!fileResponse.ok) {
-    const error = `Image download failed with status ${fileResponse.status}`;
-    logWati("error", "request_failed", {
-      waId: normalizedWaId,
-      error,
-      logEvent: "send_session_image",
-      imageUrl,
-    });
-    return { ok: false, error };
-  }
-
-  const bytes = new Uint8Array(await fileResponse.arrayBuffer());
-  if (bytes.byteLength === 0) {
+  if (loaded.bytes.byteLength === 0) {
     return { ok: false, error: "Image download returned empty body" };
   }
-  if (bytes.byteLength > 5 * 1024 * 1024) {
+  if (loaded.bytes.byteLength > 5 * 1024 * 1024) {
     return { ok: false, error: "Image exceeds WhatsApp 5MB limit" };
   }
 
-  const contentType =
-    fileResponse.headers.get("content-type")?.split(";")[0]?.trim() || "image/jpeg";
-  const fromUrl = imageUrl.split("?")[0]?.split("/").pop() || "dish.jpg";
-  const fileName = /\.(jpe?g|png|gif|webp)$/i.test(fromUrl) ? fromUrl : "dish.jpg";
+  const { bytes, contentType, fileName } = loaded;
 
   const form = new FormData();
-  form.append("file", new Blob([bytes], { type: contentType }), fileName);
+  form.append(
+    "file",
+    new Blob([Buffer.from(bytes)], { type: contentType }),
+    fileName,
+  );
 
   const query = caption
     ? new URLSearchParams({ caption: caption.slice(0, 1024) }).toString()

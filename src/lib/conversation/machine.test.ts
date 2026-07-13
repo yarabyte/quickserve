@@ -107,13 +107,19 @@ describe("handleInput — parcours commande livraison", () => {
     }
     current = s.next;
 
-    // Catégorie Plats → items (id)
+    // Catégorie Plats → photos des plats (si ImageURL) puis liste interactive
     s = step(current, categoryRowId("Plats"), "list");
     expect(s.outcome.nextState).toBe("BROWSING_MENU");
     expect(s.outcome.context.browse).toMatchObject({
       mode: "items",
       category: "Plats",
     });
+    expect(
+      s.outcome.effects.some(
+        (e) => e.type === "send_image" && e.url === "https://example.com/poulet.jpg",
+      ),
+    ).toBe(true);
+    expect(s.outcome.effects.some((e) => e.type === "send_list")).toBe(true);
     current = s.next;
 
     // Fallback titre seul (payload WATI sans id)

@@ -209,7 +209,7 @@ function buildItemsList(
   menu: MenuItemView[],
   category: string,
   pageNum: number,
-): { effect: OutboundEffect; page: number; pages: number } | null {
+): { effect: OutboundEffect; page: number; pages: number; items: MenuItemView[] } | null {
   const items = itemsInCategory(menu, category);
   if (items.length === 0) return null;
 
@@ -224,6 +224,7 @@ function buildItemsList(
   return {
     page: page.page,
     pages: page.pages,
+    items: page.slice,
     effect: {
       type: "send_list",
       payload: {
@@ -234,6 +235,38 @@ function buildItemsList(
       },
     },
   };
+}
+
+/**
+ * WhatsApp interactive lists cannot show photos — send dish images before the list.
+ * Cap to avoid flooding the chat (page size is already ≤10).
+ */
+function dishPreviewEffects(items: MenuItemView[]): OutboundEffect[] {
+  const withPhotos = items.filter((item) => item.imageUrl).slice(0, 8);
+  return withPhotos
+    .map((item) => dishImageEffect(item))
+    .filter((effect): effect is OutboundEffect => effect !== null);
+}
+
+function openItemsPageEffects(
+  lang: ConversationLanguage,
+  menu: MenuItemView[],
+  category: string,
+  pageNum: number,
+  hasCart: boolean,
+): { effects: OutboundEffect[]; page: number; pages: number } | null {
+  const built = buildItemsList(lang, menu, category, pageNum);
+  if (!built) return null;
+
+  const effects: OutboundEffect[] = [
+    ...dishPreviewEffects(built.items),
+    built.effect,
+  ];
+  const nav = paginationButtons(lang, built.page, built.pages);
+  if (nav) effects.push(nav);
+  else effects.push(browseShortcuts(lang, hasCart));
+
+  return { effects, page: built.page, pages: built.pages };
 }
 
 function paginationButtons(
@@ -321,18 +354,14 @@ function reopenCategoryOrCategories(
     ctx.browse?.mode === "items" && ctx.browse.category ? ctx.browse.category : undefined;
 
   if (category) {
-    const built = buildItemsList(lang, menu, category, 1);
-    if (built) {
-      const effects: OutboundEffect[] = [built.effect];
-      const nav = paginationButtons(lang, built.page, built.pages);
-      if (nav) effects.push(nav);
-      else effects.push(browseShortcuts(lang, ctx.items.length > 0));
+    const opened = openItemsPageEffects(lang, menu, category, 1, ctx.items.length > 0);
+    if (opened) {
       return result(
         "BROWSING_MENU",
         ctx,
-        { browse: { mode: "items", category, page: built.page } },
+        { browse: { mode: "items", category, page: opened.page } },
         lang,
-        effects,
+        opened.effects,
       );
     }
   }
@@ -609,22 +638,24 @@ function handleBrowsingMenu(
 ): MachineResult {
   const categoryFromList = resolveCategorySelection(value, menu);
   if (categoryFromList) {
-    const built = buildItemsList(lang, menu, categoryFromList, 1);
-    if (!built) {
+    const opened = openItemsPageEffects(
+      lang,
+      menu,
+      categoryFromList,
+      1,
+      ctx.items.length > 0,
+    );
+    if (!opened) {
       return result("BROWSING_MENU", ctx, { browse: { mode: "categories", page: 1 } }, lang, [
         text(t("menu_empty", lang)),
       ]);
     }
-    const effects: OutboundEffect[] = [built.effect];
-    const nav = paginationButtons(lang, built.page, built.pages);
-    if (nav) effects.push(nav);
-    else effects.push(browseShortcuts(lang, ctx.items.length > 0));
     return result(
       "BROWSING_MENU",
       ctx,
-      { browse: { mode: "items", category: categoryFromList, page: built.page } },
+      { browse: { mode: "items", category: categoryFromList, page: opened.page } },
       lang,
-      effects,
+      opened.effects,
     );
   }
 
@@ -653,20 +684,22 @@ function handleBrowsingMenu(
       );
     }
     const delta = value === BUTTON.MENU_NEXT ? 1 : -1;
-    const built = buildItemsList(lang, menu, browse.category, browse.page + delta);
-    if (!built) {
+    const opened = openItemsPageEffects(
+      lang,
+      menu,
+      browse.category,
+      browse.page + delta,
+      ctx.items.length > 0,
+    );
+    if (!opened) {
       return goStart(ctx, lang, restaurant, [text(t("menu_empty", lang))]);
     }
-    const effects: OutboundEffect[] = [built.effect];
-    const nav = paginationButtons(lang, built.page, built.pages);
-    if (nav) effects.push(nav);
-    else effects.push(browseShortcuts(lang, ctx.items.length > 0));
     return result(
       "BROWSING_MENU",
       ctx,
-      { browse: { mode: "items", category: browse.category, page: built.page } },
+      { browse: { mode: "items", category: browse.category, page: opened.page } },
       lang,
-      effects,
+      opened.effects,
     );
   }
 

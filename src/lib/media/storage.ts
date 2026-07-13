@@ -75,3 +75,18 @@ export function resolveMediaAbsolutePath(relativePath: string): string | null {
   if (!absolute.startsWith(root + path.sep) && absolute !== root) return null;
   return absolute;
 }
+
+/** Extract `menu/...` relative path from a public `/api/media/...` URL (or path). */
+export function mediaRelativePathFromUrl(imageUrl: string): string | null {
+  try {
+    const pathname = imageUrl.includes("://")
+      ? new URL(imageUrl).pathname
+      : imageUrl.split("?")[0] ?? "";
+    const marker = "/api/media/";
+    const idx = pathname.indexOf(marker);
+    if (idx < 0) return null;
+    return pathname.slice(idx + marker.length) || null;
+  } catch {
+    return null;
+  }
+}
